@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Report a technical issue. 🐞
-labels: 'bug'
+labels: "bug"
 ---
 
 <!-- Please fill out this template to help us diagnose the issue. -->
@@ -22,10 +22,10 @@ labels: 'bug'
 
 <!--- Steps to reproduce the issue. Please include code snippets if relevant. -->
 
-1. 
-2. 
-3. 
-4. 
+1.
+2.
+3.
+4.
 
 ## Screenshots/Logs (if applicable)
 
@@ -41,5 +41,5 @@ labels: 'bug'
 
 ## Your Environment
 
-- **Operating System & Version:** 
+- **Operating System & Version:**
 - **Software Version:** (e.g., Node.js, Python, etc.)
