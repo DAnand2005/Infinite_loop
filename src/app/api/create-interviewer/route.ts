@@ -1,6 +1,6 @@
 import { logger } from "@/lib/logger";
 import { InterviewerService } from "@/services/interviewers.service";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import Retell from "retell-sdk";
 import { INTERVIEWERS, RETELL_AGENT_GENERAL_PROMPT } from "@/lib/constants";
 
@@ -8,7 +8,7 @@ const retellClient = new Retell({
   apiKey: process.env.RETELL_API_KEY || "",
 });
 
-export async function GET(res: Response) {
+export async function GET(res: NextRequest) {
   logger.info("create-interviewer request received");
 
   try {
