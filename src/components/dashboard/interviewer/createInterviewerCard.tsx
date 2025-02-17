@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Image as LucideImage } from "lucide-react";
 import { Plus } from "lucide-react";
 import { CardTitle } from "@/components/ui/card";
-import Modal from "@/components/dashboard/modal";
+import Modal from "@/components/dashboard/Modal";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { avatars } from "@/components/dashboard/interviewer/avatars";
