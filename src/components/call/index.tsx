@@ -48,7 +48,7 @@ type registerCallResponseType = {
   data: {
     registerCallResponse: {
       call_id: string;
-      sample_rate: number;
+      access_token: string;
     };
   };
 };
@@ -121,7 +121,7 @@ function Call({ interview }: InterviewProps) {
     }
     setCurrentTimeDuration(String(Math.floor(time / 100)));
     if (Number(currentTimeDuration) == Number(interviewTimeDuration) * 60) {
-      webClient.stopConversation();
+      webClient.stopCall();
       setIsEnded(true);
     }
 
@@ -136,36 +136,37 @@ function Call({ interview }: InterviewProps) {
   }, [email]);
 
   useEffect(() => {
-    webClient.on("conversationStarted", () => {
-      console.log("conversationStarted");
+    webClient.on("call_started", () => {
+      console.log("Call started");
+      setIsCalling(true);
     });
 
-    webClient.on("audio", (audio: Uint8Array) => {
-      console.log("There is audio");
-    });
-
-    webClient.on("conversationEnded", ({ code, reason }) => {
-      console.log("Closed with code:", code, ", reason:", reason);
+    webClient.on("call_ended", () => {
+      console.log("Call ended");
       setIsCalling(false);
       setIsEnded(true);
+    });
+
+    webClient.on("agent_start_talking", () => {
+      setActiveTurn("agent");
+    });
+
+    webClient.on("agent_stop_talking", () => {
+      // Optional: Add any logic when agent stops talking
+      setActiveTurn("user");
     });
 
     webClient.on("error", (error) => {
       console.error("An error occurred:", error);
-      setIsCalling(false);
+      webClient.stopCall();
       setIsEnded(true);
+      setIsCalling(false);
     });
 
     webClient.on("update", (update) => {
-      const roleContents: { [key: string]: string } = {};
-      if (update.turntaking === "agent_turn") {
-        setActiveTurn("agent");
-      } else if (update.turntaking === "user_turn") {
-        setActiveTurn("user");
-      }
-
       if (update.transcript) {
         const transcripts: transcriptType[] = update.transcript;
+        const roleContents: { [key: string]: string } = {};
 
         transcripts.forEach((transcript) => {
           roleContents[transcript?.role] = transcript?.content;
@@ -176,12 +177,16 @@ function Call({ interview }: InterviewProps) {
       }
       //TODO: highlight the newly uttered word in the UI
     });
+    return () => {
+      // Clean up event listeners
+      webClient.removeAllListeners();
+    };
   }, []);
 
   const onEndCallClick = async () => {
     if (isStarted) {
       setLoading(true);
-      webClient.stopConversation();
+      webClient.stopCall();
       setIsEnded(true);
       setLoading(false);
     } else {
@@ -212,13 +217,11 @@ function Call({ interview }: InterviewProps) {
         "/api/register-call",
         { dynamic_data: data, interviewer_id: interview?.interviewer_id },
       );
-      if (registerCallResponse.data.registerCallResponse.call_id) {
-        webClient
-          .startConversation({
-            callId: registerCallResponse.data.registerCallResponse.call_id,
-            sampleRate:
-              registerCallResponse.data.registerCallResponse.sample_rate,
-            enableUpdate: true,
+      if (registerCallResponse.data.registerCallResponse.access_token) {
+        await webClient
+          .startCall({
+            accessToken:
+              registerCallResponse.data.registerCallResponse.access_token,
           })
           .catch(console.error);
         setIsCalling(true);
@@ -232,6 +235,8 @@ function Call({ interview }: InterviewProps) {
           email: email,
           name: name,
         });
+      } else {
+        console.log("Failed to register call");
       }
     }
 
