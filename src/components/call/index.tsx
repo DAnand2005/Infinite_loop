@@ -218,9 +218,12 @@ function Call({ interview }: InterviewProps) {
         { dynamic_data: data, interviewer_id: interview?.interviewer_id },
       );
       if (registerCallResponse.data.registerCallResponse.access_token) {
-        await webClient.startCall({
-          accessToken: registerCallResponse.data.registerCallResponse.access_token,
-        }).catch(console.error);
+        await webClient
+          .startCall({
+            accessToken:
+              registerCallResponse.data.registerCallResponse.access_token,
+          })
+          .catch(console.error);
         setIsCalling(true);
         setIsStarted(true);
 
