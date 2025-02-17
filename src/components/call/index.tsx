@@ -81,7 +81,6 @@ function Call({ interview }: InterviewProps) {
     useState<string>("1");
   const [time, setTime] = useState(0);
   const [currentTimeDuration, setCurrentTimeDuration] = useState<string>("0");
-  const [isCallActive, setIsCallActive] = useState(false);
 
   const lastUserResponseRef = useRef<HTMLDivElement | null>(null);
 
@@ -139,13 +138,11 @@ function Call({ interview }: InterviewProps) {
   useEffect(() => {
     webClient.on("call_started", () => {
       console.log("Call started");
-      setIsCallActive(true);
       setIsCalling(true);
     });
 
     webClient.on("call_ended", () => {
       console.log("Call ended");
-      setIsCallActive(false);
       setIsCalling(false);
       setIsEnded(true);
     });
@@ -162,7 +159,6 @@ function Call({ interview }: InterviewProps) {
     webClient.on("error", (error) => {
       console.error("An error occurred:", error);
       webClient.stopCall();
-      setIsCallActive(false);
       setIsEnded(true);
       setIsCalling(false);
     });
