@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
+import { Copy, ArrowUpRight } from "lucide-react";
 import { CopyCheck } from "lucide-react";
 import { ResponseService } from "@/services/responses.service";
 import axios from "axios";
@@ -97,6 +97,13 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
       );
   };
 
+  const handleJumpToInterview = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const interviewUrl = readableSlug ? `/call/${readableSlug}` : `/call/${url}`;
+    window.open(interviewUrl, '_blank');
+  };
+
   return (
     <a
       href={`/interviews/${id}`}
@@ -134,7 +141,14 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
               </span>
             </div>
           </div>
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex gap-1">
+            <Button
+              className="text-xs text-indigo-600 px-1 h-6"
+              variant={"secondary"}
+              onClick={handleJumpToInterview}
+            >
+              <ArrowUpRight size={16} />
+            </Button>
             <Button
               className={`text-xs text-indigo-600 px-1 h-6  ${
                 copied ? "bg-indigo-300 text-white" : ""
