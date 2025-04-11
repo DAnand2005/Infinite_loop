@@ -2,7 +2,7 @@ services:
   foloup:
     build: .
     ports:
-      - "3000:3000"
+      - "${DOCKER_PORT:-3000}:3000"
     env_file:
       - .env
     environment:
