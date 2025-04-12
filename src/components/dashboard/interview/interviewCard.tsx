@@ -100,8 +100,10 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   const handleJumpToInterview = (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
-    const interviewUrl = readableSlug ? `/call/${readableSlug}` : `/call/${url}`;
-    window.open(interviewUrl, '_blank');
+    const interviewUrl = readableSlug
+      ? `/call/${readableSlug}`
+      : `/call/${url}`;
+    window.open(interviewUrl, "_blank");
   };
 
   return (
