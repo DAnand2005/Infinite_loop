@@ -16,7 +16,7 @@ import Image from "next/image";
 function Interviews() {
   const { interviews, interviewsLoading } = useInterviews();
   const { organization } = useOrganization();
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [allowedResponsesCount, setAllowedResponsesCount] =
     useState<number>(10);
@@ -59,49 +59,28 @@ function Interviews() {
 
   useEffect(() => {
     const fetchResponsesCount = async () => {
-      if (organization?.id && interviews) {
-        setLoading(true);
-        try {
-          let totalResponses = 0;
-          if (currentPlan != "free_trial_over") {
-            for (const interview of interviews) {
-              const responses = await ResponseService.getAllResponses(
-                interview.id,
-              );
-              totalResponses += responses.length;
-            }
-          }
+      if (!organization || currentPlan !== "free") {
+        return;
+      }
 
-          if (
-            totalResponses >= allowedResponsesCount &&
-            currentPlan === "free"
-          ) {
-            setCurrentPlan("free_trial_over");
-            try {
-              for (const interview of interviews) {
-                await InterviewService.updateInterview(
-                  { is_active: false },
-                  interview.id,
-                );
-              }
-            } catch (error) {
-              console.error("Error disabling active interviews", error);
-            }
-            await ClientService.updateOrganization(
-              { plan: "free_trial_over" },
-              organization.id,
-            );
-          }
-        } catch (error) {
-          console.error("Error fetching responses:", error);
-        } finally {
-          setLoading(false);
+      setLoading(true);
+      try {
+        const totalResponses = await ResponseService.getResponseCountByOrganizationId(organization.id);
+        const hasExceededLimit = totalResponses >= allowedResponsesCount;
+        if (hasExceededLimit) {
+          setCurrentPlan("free_trial_over");
+          await InterviewService.deactivateInterviewsByOrgId(organization.id);
+          await ClientService.updateOrganization({ plan: "free_trial_over" }, organization.id,);
         }
+      } catch (error) {
+        console.error("Error fetching responses:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchResponsesCount();
-  }, [interviews, organization, currentPlan, allowedResponsesCount]);
+  }, [organization, currentPlan, allowedResponsesCount]);
 
   return (
     <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
