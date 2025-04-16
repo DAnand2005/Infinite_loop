@@ -92,10 +92,10 @@ const createInterview = async (payload: any) => {
 const deactivateInterviewsByOrgId = async (organizationId: string) => {
   try {
     const { error } = await supabase
-        .from("interview")
-        .update({ is_active: false })
-        .eq("organization_id", organizationId)
-        .eq("is_active", true); // Optional: only update if currently active
+      .from("interview")
+      .update({ is_active: false })
+      .eq("organization_id", organizationId)
+      .eq("is_active", true); // Optional: only update if currently active
 
     if (error) {
       console.error("Failed to deactivate interviews:", error);
@@ -104,7 +104,6 @@ const deactivateInterviewsByOrgId = async (organizationId: string) => {
     console.error("Unexpected error disabling interviews:", error);
   }
 };
-
 
 export const InterviewService = {
   getAllInterviews,

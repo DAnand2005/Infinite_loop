@@ -49,20 +49,22 @@ const getAllResponses = async (interviewId: string) => {
   }
 };
 
-const getResponseCountByOrganizationId = async (organizationId: string): Promise<number> => {
-    try {
-      const { count, error } = await supabase
-          .from("interview")
-          .select("response(id)", { count: "exact", head: true }) // join + count
-          .eq("organization_id", organizationId);
+const getResponseCountByOrganizationId = async (
+  organizationId: string,
+): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from("interview")
+      .select("response(id)", { count: "exact", head: true }) // join + count
+      .eq("organization_id", organizationId);
 
-        return count ?? 0;
-    } catch (error) {
-        console.log(error);
+    return count ?? 0;
+  } catch (error) {
+    console.log(error);
 
-        return 0;
-    }
-}
+    return 0;
+  }
+};
 
 const getAllEmailAddressesForInterview = async (interviewId: string) => {
   try {

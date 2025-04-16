@@ -65,12 +65,18 @@ function Interviews() {
 
       setLoading(true);
       try {
-        const totalResponses = await ResponseService.getResponseCountByOrganizationId(organization.id);
+        const totalResponses =
+          await ResponseService.getResponseCountByOrganizationId(
+            organization.id,
+          );
         const hasExceededLimit = totalResponses >= allowedResponsesCount;
         if (hasExceededLimit) {
           setCurrentPlan("free_trial_over");
           await InterviewService.deactivateInterviewsByOrgId(organization.id);
-          await ClientService.updateOrganization({ plan: "free_trial_over" }, organization.id,);
+          await ClientService.updateOrganization(
+            { plan: "free_trial_over" },
+            organization.id,
+          );
         }
       } catch (error) {
         console.error("Error fetching responses:", error);
