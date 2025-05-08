@@ -112,6 +112,13 @@ For a detailed guide on contributing, read the [CONTRIBUTING.md](CONTRIBUTING.md
 
 If you find FoloUp helpful, please consider giving us a star on GitHub! It helps us reach more developers and continue improving the project.
 
+## Products built on top of FoloUp 🚀
+
+<div style="display: flex; flex-direction: column; gap: 10px; width:100px">
+<img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Supabase SQL Editor" height="100">
+<a href="https://talvin.ai/" style="text-align:center">Talvin AI</a>
+</div>
+
 ## Contact
 
 If you have any questions or feedback, please feel free to reach out to us at [suveen.te1[at]gmail.com](mailto:suveen.te1@gmail.com).
