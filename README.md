@@ -114,9 +114,11 @@ If you find FoloUp helpful, please consider giving us a star on GitHub! It helps
 
 ## Products built on top of FoloUp 🚀
 
-<div style="display: flex; flex-direction: column; gap: 10px; width:100px">
-<img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Supabase SQL Editor" height="100">
-<a href="https://talvin.ai/" style="text-align:center">Talvin AI</a>
+<div align="left">
+  <a href="https://talvin.ai/" target="_blank">
+    <img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Talvin AI Logo" height="100" style="border-radius: 20%;">
+    <p>Talvin AI</p>
+  </a>
 </div>
 
 ## Contact
