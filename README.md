@@ -117,7 +117,7 @@ If you find FoloUp helpful, please consider giving us a star on GitHub! It helps
 <div align="left">
   <a href="https://talvin.ai/" target="_blank">
     <img src="https://pbs.twimg.com/profile_images/1910041959508422656/OEnXp-kO_400x400.jpg" alt="Talvin AI Logo" height="100" style="border-radius: 20%;">
-    <h3>Talvin AI</h3>
+    <p>Talvin AI</p>
   </a>
 </div>
 
