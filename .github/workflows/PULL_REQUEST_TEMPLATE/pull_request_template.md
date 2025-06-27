@@ -15,4 +15,4 @@
 
 ### Checks
 
-- [ ] I've run `npx prettier --write .`
+- [ ] I've run `make lint`
