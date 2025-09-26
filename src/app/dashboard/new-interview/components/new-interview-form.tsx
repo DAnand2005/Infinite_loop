@@ -38,7 +38,6 @@ export function NewInterviewForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [resumeDataUri, setResumeDataUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>('');
@@ -71,24 +70,18 @@ export function NewInterviewForm() {
       }
       setError(null);
       setResumeFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setResumeDataUri(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
   
   const handleRemoveFile = () => {
     setResumeFile(null);
-    setResumeDataUri(null);
     const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
     if(fileInput) fileInput.value = '';
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!resumeDataUri || !date || !time || !jobRole || !companyName) {
+    if (!resumeFile || !date || !time || !jobRole || !companyName) {
         setError("Please fill out all required fields and upload a resume.");
         return;
     }
@@ -112,8 +105,11 @@ export function NewInterviewForm() {
         status: 'Scheduled',
     };
     
-    // Simulate server action
-    await scheduleInterviewAction(new FormData(event.currentTarget));
+    const formData = new FormData(event.currentTarget);
+    formData.append('date', date.toISOString());
+    formData.append('time', time);
+    
+    await scheduleInterviewAction(formData);
 
     setStoredInterviews([...storedInterviews, newInterview]);
 
