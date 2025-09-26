@@ -11,10 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { mockInterviews, type Interview } from '@/lib/data';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ArrowRight, Calendar, Clock, PlusCircle, Inbox } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useEffect, useState } from 'react';
@@ -25,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/empty-state';
 
-function InterviewCard({ interview }: { interview: Interview }) {
+export function InterviewCard({ interview }: { interview: Interview }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +61,7 @@ function InterviewCard({ interview }: { interview: Interview }) {
       case 'Completed':
         return (
           <Button asChild variant="secondary" className="w-full">
-            <Link href={`/dashboard/questions`}>
+            <Link href={`/dashboard/feedback/${interview.id}`}>
               View Feedback <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -125,10 +124,6 @@ export default function DashboardPage() {
       if (interview.status === 'Scheduled' && interviewDate < now) {
         return { ...interview, status: 'Not Attended' as const };
       }
-      // This is a mock completion check, in a real app this would be more robust
-      if (interview.status === 'Completed' && interviewDate < now) {
-         return { ...interview, status: 'Completed' as const };
-      }
       return interview;
     });
 
@@ -140,7 +135,7 @@ export default function DashboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const interviews = isClient ? storedInterviews : mockInterviews;
+  const interviews = isClient ? storedInterviews : [];
 
   const scheduledInterviews = interviews.filter(
     (i) => i.status === 'Scheduled'

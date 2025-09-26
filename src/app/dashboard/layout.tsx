@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   Settings,
   LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -56,6 +57,11 @@ const menuItems = [
     href: '/dashboard/questions',
     label: 'Question Generator',
     icon: MessageSquareMore,
+  },
+  {
+    href: '/dashboard/feedback',
+    label: 'Feedback',
+    icon: ClipboardList,
   },
 ];
 
