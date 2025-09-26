@@ -15,9 +15,6 @@ import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
 import nodemailer from 'nodemailer';
-import { config } from 'dotenv';
-
-config();
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
@@ -87,7 +84,6 @@ export async function scheduleInterviewAction(formData: FormData) {
       time: format(scheduledDate, "h:mm a"),
     });
     
-    // Configure Nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -96,12 +92,11 @@ export async function scheduleInterviewAction(formData: FormData) {
       },
     });
 
-    // Send the actual email
     await transporter.sendMail({
       from: `"AI Mock Interviewer" <${process.env.GMAIL_EMAIL}>`,
       to: input.email,
       subject: emailContent.subject,
-      html: emailContent.body.replace(/\n/g, '<br>'), // Use HTML for better formatting
+      html: emailContent.body.replace(/\n/g, '<br>'),
     });
 
     const reminderContent = await generateReminderEmail({
