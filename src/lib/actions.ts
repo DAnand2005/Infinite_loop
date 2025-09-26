@@ -84,10 +84,11 @@ export async function scheduleInterviewAction(formData: FormData) {
       time: format(scheduledDate, "h:mm a"),
     });
     
+    // Use the new sendEmail utility to send the actual email
     await sendEmail({
       to: input.email,
       subject: emailContent.subject,
-      html: emailContent.body.replace(/\n/g, '<br>'),
+      html: emailContent.body.replace(/\n/g, '<br>'), // Replace newlines for HTML compatibility
     });
 
     const reminderContent = await generateReminderEmail({
