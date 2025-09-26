@@ -49,11 +49,6 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    href: '/dashboard/new-interview',
-    label: 'New Interview',
-    icon: PlusCircle,
-  },
-  {
     href: '/dashboard/questions',
     label: 'Question Generator',
     icon: MessageSquareMore,
