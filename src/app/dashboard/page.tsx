@@ -18,8 +18,36 @@ import { ArrowRight, Calendar, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useEffect, useState } from 'react';
+import { generateQuestionsAction } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 function InterviewCard({ interview }: { interview: Interview }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStartInterview = async () => {
+    setIsLoading(true);
+    // This is a mock resume text. In a real app, you'd fetch this.
+    const mockResumeText = "Experienced software engineer with a background in React and Node.js. Looking for a challenging role in a fast-paced environment.";
+    
+    const result = await generateQuestionsAction({ resumeText: mockResumeText });
+
+    if (result.success && result.data) {
+      // Store questions in local storage to be retrieved on the interview page
+      localStorage.setItem(`interview_questions_${interview.id}`, JSON.stringify(result.data.questions));
+      router.push(`/dashboard/interview/${interview.id}`);
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Could not generate interview questions. Please try again.',
+        variant: 'destructive',
+      });
+    }
+    setIsLoading(false);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -38,10 +66,8 @@ function InterviewCard({ interview }: { interview: Interview }) {
       </CardContent>
       <CardFooter>
         {interview.status === 'Scheduled' ? (
-          <Button asChild className="w-full">
-            <Link href={`/dashboard/interview/${interview.id}`}>
-              Start Interview
-            </Link>
+          <Button onClick={handleStartInterview} className="w-full" disabled={isLoading}>
+            {isLoading ? 'Preparing...' : 'Start Interview'}
           </Button>
         ) : (
           <Button asChild variant="secondary" className="w-full">

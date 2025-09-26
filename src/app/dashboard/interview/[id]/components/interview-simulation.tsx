@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,24 +13,77 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Mic, Video, Volume2, PhoneOff } from 'lucide-react';
+import { Mic, Video, Volume2, PhoneOff, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-const mockQuestions = [
-  "Can you tell me about yourself and your background?",
-  "Walk me through a challenging project you've worked on. What was your role?",
-  "Where do you see yourself in five years?",
-  "What are your biggest strengths and weaknesses?",
-  "Do you have any questions for me?",
-];
+import { useEffect, useState } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { Interview } from '@/lib/data';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { mockInterviews } from '@/lib/data';
 
 export function InterviewSimulation({ interviewId }: { interviewId: string }) {
   const router = useRouter();
   const aiAvatar = PlaceHolderImages.find((p) => p.id === 'ai-avatar');
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [storedInterviews, setStoredInterviews] = useLocalStorage<Interview[]>('interviews', mockInterviews);
+
+  useEffect(() => {
+    try {
+      const storedQuestions = localStorage.getItem(`interview_questions_${interviewId}`);
+      if (storedQuestions) {
+        setQuestions(JSON.parse(storedQuestions));
+      } else {
+        setError('Interview questions could not be loaded. Please start the interview again from the dashboard.');
+      }
+    } catch (e) {
+      setError('Failed to parse interview questions. The data may be corrupted.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [interviewId]);
 
   const handleEndInterview = () => {
+    // Update the status of the current interview to "Completed"
+    const updatedInterviews = storedInterviews.map(interview => 
+      interview.id === interviewId ? { ...interview, status: 'Completed' as const } : interview
+    );
+    setStoredInterviews(updatedInterviews);
+    // Clear the questions from local storage
+    localStorage.removeItem(`interview_questions_${interviewId}`);
     router.push(`/dashboard/feedback/${interviewId}`);
   };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center p-8">Loading interview questions...</div>;
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="max-w-xl mx-auto">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)]">
@@ -48,14 +102,26 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
                         <AvatarFallback>AI</AvatarFallback>
                     </Avatar>
                 )}
-                <div className="p-4 rounded-lg bg-muted flex-1">
-                    <p className="font-semibold">{mockQuestions[0]}</p>
+                <div className="p-4 rounded-lg bg-muted flex-1 min-h-[80px] flex items-center">
+                    <p className="font-semibold">{questions[currentQuestionIndex]}</p>
                 </div>
                </div>
                <div>
                 <Textarea placeholder="You can jot down your thoughts here (optional)..." rows={8}/>
                </div>
             </CardContent>
+            <CardFooter className="flex-col items-stretch gap-4">
+              <div className="flex justify-between items-center">
+                  <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>
+                    <ArrowLeft className="mr-2"/> Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">{currentQuestionIndex + 1} / {questions.length}</span>
+                  <Button onClick={handleNextQuestion} disabled={isLastQuestion}>
+                    Next <ArrowRight className="ml-2"/>
+                  </Button>
+              </div>
+              <Progress value={progress} />
+            </CardFooter>
           </Card>
         </div>
         <div className="relative bg-muted rounded-lg flex items-center justify-center overflow-hidden">
@@ -78,7 +144,12 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
                 <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
                     <Volume2 className="h-6 w-6"/>
                 </Button>
-                <Button variant="destructive" size="lg" className="rounded-full px-6" onClick={handleEndInterview}>
+                <Button 
+                  variant={isLastQuestion ? "default" : "destructive"} 
+                  size="lg" 
+                  className="rounded-full px-6" 
+                  onClick={handleEndInterview}
+                >
                     <PhoneOff className="mr-2 h-5 w-5"/> End Interview
                 </Button>
             </CardContent>
