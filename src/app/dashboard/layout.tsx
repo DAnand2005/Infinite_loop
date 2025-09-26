@@ -24,6 +24,7 @@ import {
   ClipboardList,
   CalendarClock,
   PlusCircle,
+  Video,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -48,6 +49,11 @@ const menuItems = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    href: '/dashboard/meeting-room',
+    label: 'Meeting Room',
+    icon: Video,
   },
   {
     href: '/dashboard/questions',
