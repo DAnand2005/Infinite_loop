@@ -145,7 +145,7 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
                     <Volume2 className="h-6 w-6"/>
                 </Button>
                 <Button 
-                  variant={isLastQuestion ? "default" : "destructive"} 
+                  variant="destructive"
                   size="lg" 
                   className="rounded-full px-6" 
                   onClick={handleEndInterview}

@@ -13,6 +13,7 @@ import { generateInterviewEmail } from '@/ai/flows/generate-interview-email';
 import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
 import { z } from 'zod';
 import { format, subHours } from 'date-fns';
+import type { Interview } from './data';
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
@@ -106,18 +107,19 @@ export async function scheduleInterviewAction(formData: FormData) {
     
     const reminderDate = subHours(scheduledDate, 2);
     const mockInterviewId = `interview-${Date.now()}`;
+    const newInterview: Interview = {
+      id: mockInterviewId,
+      role: input.jobRole,
+      company: input.companyName,
+      date: scheduledDate.toISOString(),
+      status: 'Scheduled',
+    }
 
     // Return content to be stored in local storage by the client
     return { 
       success: true, 
       data: {
-        newInterview: {
-          id: mockInterviewId,
-          role: input.jobRole,
-          company: input.companyName,
-          date: scheduledDate.toISOString(),
-          status: 'Scheduled',
-        },
+        newInterview,
         reminder: {
           id: `reminder-${mockInterviewId}`,
           interviewId: mockInterviewId,

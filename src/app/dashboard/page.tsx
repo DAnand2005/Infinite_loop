@@ -14,13 +14,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { mockInterviews, type Interview } from '@/lib/data';
 import { format } from 'date-fns';
-import { ArrowRight, Calendar, Clock, PlusCircle } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, PlusCircle, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useEffect, useState } from 'react';
 import { generateQuestionsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 function InterviewCard({ interview }: { interview: Interview }) {
   const router = useRouter();
@@ -48,6 +49,33 @@ function InterviewCard({ interview }: { interview: Interview }) {
     setIsLoading(false);
   };
 
+  const renderCardFooter = () => {
+    switch(interview.status) {
+      case 'Scheduled':
+        return (
+          <Button onClick={handleStartInterview} className="w-full" disabled={isLoading}>
+            {isLoading ? 'Preparing...' : 'Start Interview'}
+          </Button>
+        );
+      case 'Completed':
+        return (
+          <Button asChild variant="secondary" className="w-full">
+            <Link href={`/dashboard/feedback/${interview.id}`}>
+              View Feedback <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        );
+      case 'Not Attended':
+        return (
+           <div className='w-full flex items-center justify-center'>
+             <Badge variant="destructive">Not Attended</Badge>
+           </div>
+        )
+      default:
+        return null;
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -65,17 +93,7 @@ function InterviewCard({ interview }: { interview: Interview }) {
         </div>
       </CardContent>
       <CardFooter>
-        {interview.status === 'Scheduled' ? (
-          <Button onClick={handleStartInterview} className="w-full" disabled={isLoading}>
-            {isLoading ? 'Preparing...' : 'Start Interview'}
-          </Button>
-        ) : (
-          <Button asChild variant="secondary" className="w-full">
-            <Link href={`/dashboard/feedback/${interview.id}`}>
-              View Feedback <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        )}
+        {renderCardFooter()}
       </CardFooter>
     </Card>
   );
@@ -90,6 +108,22 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Check for overdue interviews
+    const now = new Date();
+    const updatedInterviews = storedInterviews.map(interview => {
+      if (interview.status === 'Scheduled' && new Date(interview.date) < now) {
+        return { ...interview, status: 'Not Attended' as const };
+      }
+      return interview;
+    });
+
+    // Check if there are any changes before updating state
+    if (JSON.stringify(updatedInterviews) !== JSON.stringify(storedInterviews)) {
+        setStoredInterviews(updatedInterviews);
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const interviews = isClient ? storedInterviews : mockInterviews;
@@ -97,8 +131,8 @@ export default function DashboardPage() {
   const scheduledInterviews = interviews.filter(
     (i) => i.status === 'Scheduled'
   );
-  const completedInterviews = interviews.filter(
-    (i) => i.status === 'Completed'
+  const pastInterviews = interviews.filter(
+    (i) => i.status === 'Completed' || i.status === 'Not Attended'
   );
 
   return (
@@ -139,9 +173,9 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-semibold font-headline mb-4">
             Past Interviews
           </h2>
-          {completedInterviews.length > 0 ? (
+          {pastInterviews.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedInterviews.map((interview) => (
+              {pastInterviews.map((interview) => (
                 <InterviewCard key={interview.id} interview={interview} />
               ))}
             </div>

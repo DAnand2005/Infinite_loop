@@ -3,7 +3,7 @@ export type Interview = {
   role: string;
   company: string;
   date: string;
-  status: 'Scheduled' | 'Completed';
+  status: 'Scheduled' | 'Completed' | 'Not Attended';
 };
 
 export const mockInterviews: Interview[] = [
