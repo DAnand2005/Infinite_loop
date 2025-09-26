@@ -148,28 +148,34 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setIsClient(true);
-    
-    const now = new Date();
-    const checkAndUpdateInterviews = () => {
-        const updatedInterviews = storedInterviews.map(interview => {
-          const interviewDate = new Date(interview.date);
-          if (interview.status === 'Scheduled' && isBefore(interviewDate, now)) {
-            return { ...interview, status: 'Not Attended' as const };
-          }
-          return interview;
-        });
+  }, []);
 
-        if (JSON.stringify(updatedInterviews) !== JSON.stringify(storedInterviews)) {
-            setStoredInterviews(updatedInterviews);
+  // Effect to update interview statuses periodically
+  useEffect(() => {
+    if (!isClient) return;
+
+    const checkAndUpdateInterviews = () => {
+      const now = new Date();
+      let hasChanged = false;
+      const updatedInterviews = storedInterviews.map(interview => {
+        const interviewDate = new Date(interview.date);
+        if (interview.status === 'Scheduled' && isBefore(interviewDate, now)) {
+          hasChanged = true;
+          return { ...interview, status: 'Not Attended' as const };
         }
+        return interview;
+      });
+      
+      if (hasChanged) {
+        setStoredInterviews(updatedInterviews);
+      }
     };
 
-    checkAndUpdateInterviews();
+    checkAndUpdateInterviews(); // Check once on load
     const intervalId = setInterval(checkAndUpdateInterviews, 60000); // Check every minute
 
     return () => clearInterval(intervalId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isClient, storedInterviews, setStoredInterviews]);
 
   const interviews = isClient ? storedInterviews : [];
 
