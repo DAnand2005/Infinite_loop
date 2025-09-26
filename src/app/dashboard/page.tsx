@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { mockInterviews, type Interview } from '@/lib/data';
-import { format } from 'date-fns';
-import { ArrowRight, Calendar, Clock, PlusCircle, AlertTriangle } from 'lucide-react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ArrowRight, Calendar, Clock, PlusCircle, Inbox } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { useEffect, useState } from 'react';
@@ -22,6 +22,8 @@ import { generateQuestionsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/empty-state';
 
 function InterviewCard({ interview }: { interview: Interview }) {
   const router = useRouter();
@@ -76,10 +78,12 @@ function InterviewCard({ interview }: { interview: Interview }) {
     }
   }
 
+  const isNotAttended = interview.status === 'Not Attended';
+
   return (
-    <Card>
+    <Card className={cn(isNotAttended && 'bg-muted/50 border-dashed')}>
       <CardHeader>
-        <CardTitle>{interview.role}</CardTitle>
+        <CardTitle className={cn(isNotAttended && 'text-muted-foreground')}>{interview.role}</CardTitle>
         <CardDescription>{interview.company}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-2 text-sm text-muted-foreground">
@@ -91,6 +95,11 @@ function InterviewCard({ interview }: { interview: Interview }) {
           <Clock className="h-4 w-4" />
           <span>{format(new Date(interview.date), 'h:mm a')}</span>
         </div>
+        {interview.status === 'Scheduled' && (
+           <div className="flex items-center gap-2 pt-1">
+             <span className="text-xs text-primary font-semibold">Starts {formatDistanceToNow(new Date(interview.date), { addSuffix: true })}</span>
+           </div>
+        )}
       </CardContent>
       <CardFooter>
         {renderCardFooter()}
@@ -161,9 +170,18 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">
-              You have no upcoming interviews scheduled.
-            </p>
+            <EmptyState
+              icon={Calendar}
+              title="No Upcoming Interviews"
+              description="You have no interviews scheduled. Click below to set one up."
+            >
+              <Button asChild>
+                <Link href="/dashboard/new-interview">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Schedule Interview
+                </Link>
+              </Button>
+            </EmptyState>
           )}
         </section>
 
@@ -180,9 +198,11 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">
-              You haven't completed any interviews yet.
-            </p>
+             <EmptyState
+              icon={Inbox}
+              title="No Past Interviews"
+              description="You haven't completed any interviews yet. Your past interviews will appear here."
+            />
           )}
         </section>
       </div>
