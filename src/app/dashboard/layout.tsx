@@ -60,7 +60,7 @@ const menuItems = [
   },
   {
     href: '/dashboard/new-interview',
-    label: 'New Meeting',
+    label: 'New Interview',
     icon: PlusCircle,
   },
 ];
