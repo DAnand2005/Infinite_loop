@@ -63,6 +63,11 @@ const menuItems = [
     label: 'Meeting History',
     icon: ClipboardList,
   },
+  {
+    href: '/dashboard/new-interview',
+    label: 'New Meeting',
+    icon: PlusCircle,
+  },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
