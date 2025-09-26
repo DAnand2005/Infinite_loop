@@ -15,6 +15,9 @@ import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
 import nodemailer from 'nodemailer';
+import { config } from 'dotenv';
+
+config();
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
