@@ -73,8 +73,10 @@ export async function scheduleInterviewAction(formData: FormData) {
     let hour = parseInt(hours);
     if (modifier === 'PM' && hour < 12) hour += 12;
     if (modifier === 'AM' && hour === 12) hour = 0;
+
     const scheduledDate = new Date(input.date);
-    scheduledDate.setHours(hour, parseInt(minutes));
+    // Use UTC methods to prevent timezone shifts
+    scheduledDate.setUTCHours(hour, parseInt(minutes), 0, 0);
 
 
     // Generate initial confirmation email
