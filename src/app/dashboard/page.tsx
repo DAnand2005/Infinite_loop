@@ -62,7 +62,7 @@ function InterviewCard({ interview }: { interview: Interview }) {
       case 'Completed':
         return (
           <Button asChild variant="secondary" className="w-full">
-            <Link href={`/dashboard/feedback/${interview.id}`}>
+            <Link href={`/dashboard/questions`}>
               View Feedback <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -118,11 +118,16 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsClient(true);
     
-    // Check for overdue interviews
+    // Check for overdue interviews and completed interviews to update status
     const now = new Date();
     const updatedInterviews = storedInterviews.map(interview => {
-      if (interview.status === 'Scheduled' && new Date(interview.date) < now) {
+      const interviewDate = new Date(interview.date);
+      if (interview.status === 'Scheduled' && interviewDate < now) {
         return { ...interview, status: 'Not Attended' as const };
+      }
+      // This is a mock completion check, in a real app this would be more robust
+      if (interview.status === 'Completed' && interviewDate < now) {
+         return { ...interview, status: 'Completed' as const };
       }
       return interview;
     });
@@ -140,10 +145,7 @@ export default function DashboardPage() {
   const scheduledInterviews = interviews.filter(
     (i) => i.status === 'Scheduled'
   );
-  const pastInterviews = interviews.filter(
-    (i) => i.status === 'Completed' || i.status === 'Not Attended'
-  );
-
+  
   return (
     <div>
       <PageHeader
@@ -182,27 +184,6 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </EmptyState>
-          )}
-        </section>
-
-        <Separator />
-
-        <section>
-          <h2 className="text-2xl font-semibold font-headline mb-4">
-            Past Interviews
-          </h2>
-          {pastInterviews.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastInterviews.map((interview) => (
-                <InterviewCard key={interview.id} interview={interview} />
-              ))}
-            </div>
-          ) : (
-             <EmptyState
-              icon={Inbox}
-              title="No Past Interviews"
-              description="You haven't completed any interviews yet. Your past interviews will appear here."
-            />
           )}
         </section>
       </div>
