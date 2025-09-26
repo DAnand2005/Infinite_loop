@@ -37,25 +37,39 @@ export async function generateFeedbackAction(
 const scheduleInterviewInput = z.object({
   resumeDataUri: z.string(),
   jobDescription: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  date: z.string().optional(),
+  time: z.string().optional(),
 });
 
 export async function scheduleInterviewAction(formData: FormData) {
   try {
-    // Simulate a delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    // In a real app, you would save the interview details to a database.
-    // For now, we'll just log the data.
+    
     const input = scheduleInterviewInput.parse({
       resumeDataUri: formData.get('resumeDataUri'),
       jobDescription: formData.get('jobDescription'),
+      name: formData.get('name'),
+      email: formData.get('email'),
+      date: formData.get('date'),
+      time: formData.get('time'),
     });
+
     console.log('Interview scheduled with:', input);
 
-    // We can return a mock ID for redirection.
+    // Simulate sending an email
+    console.log(`Simulating: Sending confirmation email to ${input.email}`);
+    console.log(`Subject: Your Mock Interview is Scheduled!`);
+    console.log(`Body: Hi ${input.name}, your interview for the position is scheduled for ${input.date ? new Date(input.date).toLocaleDateString() : 'N/A'} at ${input.time || 'N/A'}.`);
+
     const mockInterviewId = 'new-interview-id';
     return { success: true, data: { interviewId: mockInterviewId } };
   } catch (error) {
     console.error(error);
+    if (error instanceof z.ZodError) {
+        return { success: false, error: 'Invalid form data provided.' };
+    }
     return { success: false, error: 'Failed to schedule interview.' };
   }
 }

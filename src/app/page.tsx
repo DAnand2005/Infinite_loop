@@ -1,9 +1,12 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { CheckCircle, Bot, LineChart, BookUser } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAuth } from '@/components/auth-provider';
 
 const features = [
   {
@@ -29,7 +32,10 @@ const features = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-image-1');
+  const dashboardLink = user ? '/dashboard' : '/login';
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -37,10 +43,10 @@ export default function Home() {
           <h1 className="text-2xl font-bold font-headline text-primary">AI Mock Interviewer</h1>
           <nav>
             <Button asChild variant="ghost">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href={dashboardLink}>Dashboard</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard/new-interview">Get Started</Link>
+              <Link href={dashboardLink}>Get Started</Link>
             </Button>
           </nav>
         </div>
@@ -57,7 +63,7 @@ export default function Home() {
                   Our platform provides realistic mock interviews tailored to your resume and desired job. Get instant, actionable feedback to land your dream job.
                 </p>
                 <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Link href="/dashboard/new-interview">Start Your Free Interview</Link>
+                  <Link href={dashboardLink}>Start Your Free Interview</Link>
                 </Button>
               </div>
               <div>

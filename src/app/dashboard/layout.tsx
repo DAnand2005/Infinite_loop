@@ -14,17 +14,20 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   LayoutDashboard,
   PlusCircle,
   MessageSquareMore,
   LifeBuoy,
   Settings,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useAuth } from '@/components/auth-provider';
+import { auth } from '@/lib/firebase';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   {
@@ -46,7 +49,13 @@ const menuItems = [
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const userAvatar = PlaceHolderImages.find((p) => p.id === 'user-avatar-1');
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
 
   return (
     <SidebarProvider>
@@ -88,15 +97,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
-                    {userAvatar && (
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={userAvatar.imageUrl} alt="User avatar" />
-                            <AvatarFallback>JD</AvatarFallback>
-                        </Avatar>
-                    )}
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.photoURL || ''} alt="User avatar" />
+                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                        <span className="text-sm font-semibold">Jane Doe</span>
-                        <span className="text-xs text-muted-foreground">jane.doe@email.com</span>
+                        <span className="text-sm font-semibold">{user?.displayName}</span>
+                        <span className="text-xs text-muted-foreground">{user?.email}</span>
                     </div>
                 </div>
             </SidebarMenuItem>
@@ -106,7 +113,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         <header className="flex items-center justify-between p-4 border-b">
           <SidebarTrigger />
-          <p className="text-sm font-medium">Welcome back, Jane!</p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm font-medium">Welcome back, {user?.displayName?.split(' ')[0]}!</p>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
