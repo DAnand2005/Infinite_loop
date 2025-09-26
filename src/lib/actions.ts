@@ -14,6 +14,7 @@ import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
 import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
+import nodemailer from 'nodemailer';
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
@@ -52,8 +53,6 @@ const scheduleInterviewInput = z.object({
 
 export async function scheduleInterviewAction(formData: FormData) {
   try {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
     const rawInput = {
       resume: formData.get('resume'),
       jobDescription: formData.get('jobDescription'),
@@ -67,7 +66,6 @@ export async function scheduleInterviewAction(formData: FormData) {
 
     const input = scheduleInterviewInput.parse(rawInput);
 
-    // Combine date and time for formatting
     const [hours, minutesPart] = input.time.split(':');
     const [minutes, modifier] = minutesPart.split(' ');
     let hour = parseInt(hours);
@@ -75,11 +73,8 @@ export async function scheduleInterviewAction(formData: FormData) {
     if (modifier === 'AM' && hour === 12) hour = 0;
 
     const scheduledDate = new Date(input.date);
-    // Use UTC methods to prevent timezone shifts
     scheduledDate.setUTCHours(hour, parseInt(minutes), 0, 0);
 
-
-    // Generate initial confirmation email
     const emailContent = await generateInterviewEmail({
       name: input.name,
       email: input.email,
@@ -89,7 +84,23 @@ export async function scheduleInterviewAction(formData: FormData) {
       time: format(scheduledDate, "h:mm a"),
     });
     
-    // Generate reminder email
+    // Configure Nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_EMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
+    // Send the actual email
+    await transporter.sendMail({
+      from: `"AI Mock Interviewer" <${process.env.GMAIL_EMAIL}>`,
+      to: input.email,
+      subject: emailContent.subject,
+      html: emailContent.body.replace(/\n/g, '<br>'), // Use HTML for better formatting
+    });
+
     const reminderContent = await generateReminderEmail({
       name: input.name,
       jobRole: input.jobRole,
@@ -98,15 +109,6 @@ export async function scheduleInterviewAction(formData: FormData) {
       time: format(scheduledDate, "h:mm a"),
     });
 
-    console.log('Interview scheduled with:', input);
-
-    // Simulate sending an email by logging to console
-    console.log(`--- SIMULATING CONFIRMATION EMAIL ---`);
-    console.log(`To: ${input.email}`);
-    console.log(`Subject: ${emailContent.subject}`);
-    console.log(`Body:\n${emailContent.body}`);
-    console.log(`-----------------------------------`);
-    
     const reminderDate = subHours(scheduledDate, 2);
     const mockInterviewId = `interview-${Date.now()}`;
     const newInterview: Interview = {
@@ -117,7 +119,6 @@ export async function scheduleInterviewAction(formData: FormData) {
       status: 'Scheduled',
     }
 
-    // Return content to be stored in local storage by the client
     return { 
       success: true, 
       data: {
@@ -137,6 +138,6 @@ export async function scheduleInterviewAction(formData: FormData) {
         console.error(error.issues);
         return { success: false, error: 'Invalid form data provided.' };
     }
-    return { success: false, error: 'Failed to schedule interview.' };
+    return { success: false, error: 'Failed to schedule interview. Please check server logs for email sending issues.' };
   }
 }
