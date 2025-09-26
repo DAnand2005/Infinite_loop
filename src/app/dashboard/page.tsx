@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { mockInterviews, type Interview } from '@/lib/data';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isBefore, subMinutes } from 'date-fns';
 import { ArrowRight, Calendar, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -23,11 +23,17 @@ import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/empty-state';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function InterviewCard({ interview }: { interview: Interview }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleStartInterview = async () => {
     setIsLoading(true);
@@ -50,14 +56,38 @@ export function InterviewCard({ interview }: { interview: Interview }) {
     setIsLoading(false);
   };
 
+  const isNotAttended = interview.status === 'Not Attended';
+  const interviewDateTime = new Date(interview.date);
+  const tenMinutesBefore = subMinutes(interviewDateTime, 10);
+  const canStart = isClient && isBefore(new Date(), interviewDateTime) && isBefore(tenMinutesBefore, new Date());
+  const isButtonDisabled = isLoading || !canStart;
+
   const renderCardFooter = () => {
     switch(interview.status) {
       case 'Scheduled':
-        return (
-          <Button onClick={handleStartInterview} className="w-full" disabled={isLoading}>
+        const StartButton = (
+          <Button onClick={handleStartInterview} className="w-full" disabled={isButtonDisabled}>
             {isLoading ? 'Preparing...' : 'Start Interview'}
           </Button>
         );
+
+        if (isButtonDisabled && !isLoading) {
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span tabIndex={0} className="w-full">
+                                {StartButton}
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>You can start this interview 10 minutes before the scheduled time.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
+        }
+        return StartButton;
       case 'Completed':
         return (
           <Button asChild variant="secondary" className="w-full">
@@ -77,8 +107,6 @@ export function InterviewCard({ interview }: { interview: Interview }) {
     }
   }
 
-  const isNotAttended = interview.status === 'Not Attended';
-
   return (
     <Card className={cn(isNotAttended && 'bg-muted/50 border-dashed')}>
       <CardHeader>
@@ -88,15 +116,15 @@ export function InterviewCard({ interview }: { interview: Interview }) {
       <CardContent className="grid gap-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4" />
-          <span>{format(new Date(interview.date), 'MMMM d, yyyy')}</span>
+          <span>{format(interviewDateTime, 'MMMM d, yyyy')}</span>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4" />
-          <span>{format(new Date(interview.date), 'h:mm a')}</span>
+          <span>{format(interviewDateTime, 'h:mm a')}</span>
         </div>
         {interview.status === 'Scheduled' && (
            <div className="flex items-center gap-2 pt-1">
-             <span className="text-xs text-primary font-semibold">Starts {formatDistanceToNow(new Date(interview.date), { addSuffix: true })}</span>
+             <span className="text-xs text-primary font-semibold">Starts {formatDistanceToNow(interviewDateTime, { addSuffix: true })}</span>
            </div>
         )}
       </CardContent>
@@ -117,21 +145,25 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsClient(true);
     
-    // Check for overdue interviews and completed interviews to update status
     const now = new Date();
-    const updatedInterviews = storedInterviews.map(interview => {
-      const interviewDate = new Date(interview.date);
-      if (interview.status === 'Scheduled' && interviewDate < now) {
-        return { ...interview, status: 'Not Attended' as const };
-      }
-      return interview;
-    });
+    const checkAndUpdateInterviews = () => {
+        const updatedInterviews = storedInterviews.map(interview => {
+          const interviewDate = new Date(interview.date);
+          if (interview.status === 'Scheduled' && isBefore(interviewDate, now)) {
+            return { ...interview, status: 'Not Attended' as const };
+          }
+          return interview;
+        });
 
-    // Check if there are any changes before updating state
-    if (JSON.stringify(updatedInterviews) !== JSON.stringify(storedInterviews)) {
-        setStoredInterviews(updatedInterviews);
-    }
+        if (JSON.stringify(updatedInterviews) !== JSON.stringify(storedInterviews)) {
+            setStoredInterviews(updatedInterviews);
+        }
+    };
 
+    checkAndUpdateInterviews();
+    const intervalId = setInterval(checkAndUpdateInterviews, 60000); // Check every minute
+
+    return () => clearInterval(intervalId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
