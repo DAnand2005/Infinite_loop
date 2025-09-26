@@ -18,7 +18,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   LayoutDashboard,
   PlusCircle,
-  MessageSquareQuestion,
+  MessageSquareMore,
   LifeBuoy,
   Settings,
 } from 'lucide-react';
@@ -40,7 +40,7 @@ const menuItems = [
   {
     href: '/dashboard/questions',
     label: 'Question Generator',
-    icon: MessageSquareQuestion,
+    icon: MessageSquareMore,
   },
 ];
 
