@@ -20,7 +20,7 @@ export const sendEmail = async (data: EmailPayload) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: true, // true for 465, false for 587
+    secure: false, // true for 465, false for 587. Port 587 requires STARTTLS.
     auth: {
       user: GMAIL_EMAIL,
       pass: GMAIL_APP_PASSWORD,
