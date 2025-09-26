@@ -26,6 +26,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Interview, mockInterviews } from '@/lib/data';
+import type { GenerateReminderEmailOutput } from '@/ai/flows/generate-reminder-email';
+
+type Reminder = GenerateReminderEmailOutput & {
+  id: string;
+  interviewId: string;
+  sendAt: string;
+  recipient: string;
+};
 
 const timeSlots = [
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
@@ -49,6 +57,7 @@ export function NewInterviewForm() {
   const [companyName, setCompanyName] = useState('');
 
   const [storedInterviews, setStoredInterviews] = useLocalStorage<Interview[]>('interviews', mockInterviews);
+  const [reminders, setReminders] = useLocalStorage<Reminder[]>('reminders', []);
 
   useEffect(() => {
     if (user) {
@@ -88,36 +97,23 @@ export function NewInterviewForm() {
     setIsSubmitting(true);
     setError(null);
     
-    // Combine date and time
-    const [hours, minutesPart] = time.split(':');
-    const [minutes, modifier] = minutesPart.split(' ');
-    let hour = parseInt(hours);
-    if (modifier === 'PM' && hour < 12) hour += 12;
-    if (modifier === 'AM' && hour === 12) hour = 0;
-    const scheduledDate = new Date(date);
-    scheduledDate.setHours(hour, parseInt(minutes));
-
-    const newInterview: Interview = {
-        id: `interview-${Date.now()}`,
-        role: jobRole,
-        company: companyName,
-        date: scheduledDate.toISOString(),
-        status: 'Scheduled',
-    };
-    
     const formData = new FormData(event.currentTarget);
     formData.append('date', date.toISOString());
     formData.append('time', time);
     
-    await scheduleInterviewAction(formData);
+    const result = await scheduleInterviewAction(formData);
 
-    setStoredInterviews([...storedInterviews, newInterview]);
-
-    toast({
-        title: 'Interview Scheduled!',
-        description: 'Your new mock interview has been added to your dashboard.',
-    });
-    router.push('/dashboard');
+    if (result.success && result.data) {
+      setStoredInterviews([...storedInterviews, result.data.newInterview]);
+      setReminders([...reminders, result.data.reminder]);
+      toast({
+          title: 'Interview Scheduled!',
+          description: 'Your new mock interview has been added to your dashboard.',
+      });
+      router.push('/dashboard');
+    } else {
+      setError(result.error || "An unknown error occurred.");
+    }
     
     setIsSubmitting(false);
   };

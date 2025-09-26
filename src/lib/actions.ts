@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -102,19 +103,30 @@ export async function scheduleInterviewAction(formData: FormData) {
     console.log(`Subject: ${emailContent.subject}`);
     console.log(`Body:\n${emailContent.body}`);
     console.log(`-----------------------------------`);
-
-    // Simulate scheduling and sending a reminder email
+    
     const reminderDate = subHours(scheduledDate, 2);
-    console.log(`\n--- SIMULATING REMINDER EMAIL SCHEDULING ---`);
-    console.log(`A reminder email will be sent on: ${format(reminderDate, "MMMM d, yyyy 'at' h:mm a")}`);
-    console.log(`To: ${input.email}`);
-    console.log(`Subject: ${reminderContent.subject}`);
-    console.log(`Body:\n${reminderContent.body}`);
-    console.log(`--------------------------------------------`);
-
-
     const mockInterviewId = `interview-${Date.now()}`;
-    return { success: true, data: { interviewId: mockInterviewId } };
+
+    // Return content to be stored in local storage by the client
+    return { 
+      success: true, 
+      data: {
+        newInterview: {
+          id: mockInterviewId,
+          role: input.jobRole,
+          company: input.companyName,
+          date: scheduledDate.toISOString(),
+          status: 'Scheduled',
+        },
+        reminder: {
+          id: `reminder-${mockInterviewId}`,
+          interviewId: mockInterviewId,
+          sendAt: reminderDate.toISOString(),
+          recipient: input.name,
+          ...reminderContent
+        }
+      } 
+    };
   } catch (error) {
     console.error(error);
     if (error instanceof z.ZodError) {

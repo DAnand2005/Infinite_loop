@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Logo } from '@/components/logo';
@@ -28,6 +29,17 @@ import type { ReactNode } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useToast } from '@/hooks/use-toast';
+import type { GenerateReminderEmailOutput } from '@/ai/flows/generate-reminder-email';
+
+type Reminder = GenerateReminderEmailOutput & {
+  id: string;
+  interviewId: string;
+  sendAt: string;
+  recipient: string;
+};
 
 const menuItems = [
   {
@@ -51,11 +63,41 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const [reminders, setReminders] = useLocalStorage<Reminder[]>('reminders', []);
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
     await auth.signOut();
     router.push('/login');
   };
+
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      const dueReminders = reminders.filter(r => new Date(r.sendAt) <= now);
+
+      if (dueReminders.length > 0) {
+        dueReminders.forEach(reminder => {
+          toast({
+            title: "Reminder Sent!",
+            description: `A reminder email for your interview was just sent to ${reminder.recipient}.`,
+          });
+           // Log the simulated email for debugging
+          console.log(`--- SIMULATING REMINDER EMAIL ---`);
+          console.log(`To: ${reminder.recipient}`);
+          console.log(`Subject: ${reminder.subject}`);
+          console.log(`Body:\n${reminder.body}`);
+          console.log(`---------------------------------`);
+        });
+
+        // Remove the reminders that have been sent
+        setReminders(reminders.filter(r => new Date(r.sendAt) > now));
+      }
+    };
+    // Check reminders on initial load and whenever the user navigates
+    checkReminders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]); // Rerun on navigation
 
   return (
     <SidebarProvider>
