@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Mic, Video, Volume2, PhoneOff, ArrowLeft, ArrowRight, PlayCircle, Loader2 } from 'lucide-react';
+import { Mic, Video, Volume2, PhoneOff, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
@@ -22,6 +22,7 @@ import type { Interview } from '@/lib/data';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { mockInterviews } from '@/lib/data';
 import { generateSpeechAction } from '@/lib/actions';
+import Image from 'next/image';
 
 export function InterviewSimulation({ interviewId }: { interviewId: string }) {
   const router = useRouter();
@@ -42,8 +43,9 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
       if (storedQuestions) {
         const parsedQuestions = JSON.parse(storedQuestions);
         setQuestions(parsedQuestions);
-        // Fetch audio for the first question
-        fetchAudio(parsedQuestions[0]);
+        if (parsedQuestions.length > 0) {
+          fetchAudio(parsedQuestions[0]);
+        }
       } else {
         setError('Interview questions could not be loaded. Please start the interview again from the dashboard.');
       }
@@ -64,7 +66,6 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
       setAudioUrl(result.data.audioDataUri);
     } else {
       console.error("Failed to generate speech:", result.error);
-      // You could set a specific error state for audio failure here if needed
     }
     setIsAudioLoading(false);
   };
@@ -114,31 +115,43 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
     );
   }
 
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const progress = ((currentQuestionIndex + 1) / (questions.length || 1)) * 100;
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)]">
-      <div className="flex-grow grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 flex flex-col">
+      <div className="flex-grow grid lg:grid-cols-2 gap-6">
+        {/* AI Avatar Side */}
+        <div className="relative bg-muted rounded-lg flex flex-col items-center justify-center overflow-hidden border">
+            {aiAvatar ? (
+              <Image 
+                src={aiAvatar.imageUrl} 
+                alt="AI Interviewer" 
+                fill 
+                className="object-cover object-center" 
+                data-ai-hint={aiAvatar.imageHint} 
+              />
+            ) : (
+                <Avatar className="h-48 w-48">
+                    <AvatarFallback>AI</AvatarFallback>
+                </Avatar>
+            )}
+             <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-2 rounded-lg">
+                <p className="text-center font-bold">AI Interviewer</p>
+            </div>
+        </div>
+
+        {/* User Side */}
+        <div className="flex flex-col">
           <Card className="flex-grow flex flex-col">
             <CardHeader>
-              <CardTitle>AI Interviewer</CardTitle>
-              <CardDescription>Listen carefully to the questions and provide your response.</CardDescription>
+              <CardTitle>Question {currentQuestionIndex + 1} of {questions.length}</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow space-y-4">
-               <div className="flex items-center gap-4">
-                {aiAvatar && (
-                    <Avatar className="h-16 w-16">
-                        <AvatarImage src={aiAvatar.imageUrl} data-ai-hint={aiAvatar.imageHint} alt="AI Interviewer" />
-                        <AvatarFallback>AI</AvatarFallback>
-                    </Avatar>
-                )}
-                <div className="p-4 rounded-lg bg-muted flex-1 min-h-[80px] flex items-center">
-                    <p className="font-semibold">{questions[currentQuestionIndex]}</p>
+            <CardContent className="flex-grow flex flex-col gap-4">
+               <div className="p-4 rounded-lg bg-muted flex-1 min-h-[120px] flex items-center">
+                    <p className="font-semibold text-lg">{questions[currentQuestionIndex]}</p>
                 </div>
-               </div>
-               <div className="flex items-center justify-center gap-4">
+               <div className="flex items-center justify-center gap-4 h-12">
                  {isAudioLoading ? (
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -152,33 +165,30 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
                     )
                  )}
                </div>
-               <div>
-                <Textarea placeholder="You can jot down your thoughts here (optional)..." rows={8}/>
-               </div>
+               <div className="relative bg-muted rounded-lg flex-grow items-center justify-center overflow-hidden border min-h-[200px]">
+                 <div className="flex items-center justify-center h-full">
+                    <Video className="h-24 w-24 text-muted-foreground/50"/>
+                 </div>
+                <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-2 rounded-lg">
+                    <p className="text-center font-bold">Your Camera</p>
+                </div>
+            </div>
             </CardContent>
             <CardFooter className="flex-col items-stretch gap-4">
               <div className="flex justify-between items-center">
                   <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>
                     <ArrowLeft className="mr-2"/> Previous
                   </Button>
-                  <span className="text-sm text-muted-foreground">{currentQuestionIndex + 1} / {questions.length}</span>
-                  <Button onClick={handleNextQuestion} disabled={isLastQuestion}>
-                    Next <ArrowRight className="ml-2"/>
+                  <Button onClick={isLastQuestion ? handleEndInterview : handleNextQuestion}>
+                    {isLastQuestion ? 'Finish' : 'Next'} <ArrowRight className="ml-2"/>
                   </Button>
               </div>
               <Progress value={progress} />
             </CardFooter>
           </Card>
         </div>
-        <div className="relative bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-            <Video className="h-24 w-24 text-muted-foreground/50"/>
-            <div className="absolute bottom-4 bg-background/80 backdrop-blur-sm p-2 rounded-lg">
-                <p className="text-center font-bold">Your Camera</p>
-                <p className="text-xs text-muted-foreground">Your video feed would appear here.</p>
-            </div>
-        </div>
       </div>
-      <div className="flex-shrink-0 mt-4">
+       <div className="flex-shrink-0 mt-4">
         <Card>
             <CardContent className="p-4 flex justify-center items-center gap-4">
                 <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
