@@ -146,7 +146,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SidebarMenuItem>
                 <div className="flex items-center gap-3 p-2">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.photoURL || ''} alt="User avatar" />
+                        <AvatarImage src={user?.photoURL || undefined} alt="User avatar" />
                         <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col group-data-[collapsible=icon]:hidden">
