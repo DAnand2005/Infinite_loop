@@ -17,12 +17,13 @@ import {
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
-  PlusCircle,
   MessageSquareMore,
   LifeBuoy,
   Settings,
   LogOut,
   ClipboardList,
+  CalendarClock,
+  PlusCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -57,6 +58,11 @@ const menuItems = [
     href: '/dashboard/feedback',
     label: 'Meeting History',
     icon: ClipboardList,
+  },
+  {
+    href: '/dashboard/upcoming',
+    label: 'Upcoming Interviews',
+    icon: CalendarClock,
   },
   {
     href: '/dashboard/new-interview',
