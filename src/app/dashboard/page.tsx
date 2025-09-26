@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/empty-state';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function InterviewCard({ interview }: { interview: Interview }) {
+export function InterviewCard({ interview, className }: { interview: Interview, className?: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +60,11 @@ export function InterviewCard({ interview }: { interview: Interview }) {
   const interviewDateTime = new Date(interview.date);
   const tenMinutesBefore = subMinutes(interviewDateTime, 10);
   const canStart = isClient && isBefore(new Date(), interviewDateTime) && isBefore(tenMinutesBefore, new Date());
-  const isButtonDisabled = isLoading || !canStart;
+  
+  // Also allow starting if it's within 5 minutes, to match meeting room logic
+  const startingSoon = isClient && isBefore(new Date(), interviewDateTime) && (new Date().getTime() - interviewDateTime.getTime()) < 5 * 60 * 1000;
+  
+  const isButtonDisabled = isLoading || (!canStart && !startingSoon);
 
   const renderCardFooter = () => {
     switch(interview.status) {
@@ -108,7 +112,7 @@ export function InterviewCard({ interview }: { interview: Interview }) {
   }
 
   return (
-    <Card className={cn(isNotAttended && 'bg-muted/50 border-dashed')}>
+    <Card className={cn(isNotAttended && 'bg-muted/50 border-dashed', className)}>
       <CardHeader>
         <CardTitle className={cn(isNotAttended && 'text-muted-foreground')}>{interview.role}</CardTitle>
         <CardDescription>{interview.company}</CardDescription>
