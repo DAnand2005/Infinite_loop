@@ -9,8 +9,9 @@ import {
   type GeneratePersonalizedQuestionsInput,
 } from '@/ai/flows/generate-personalized-questions';
 import { generateInterviewEmail } from '@/ai/flows/generate-interview-email';
+import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
 import { z } from 'zod';
-import { format } from 'date-fns';
+import { format, subHours } from 'date-fns';
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
@@ -74,10 +75,19 @@ export async function scheduleInterviewAction(formData: FormData) {
     scheduledDate.setHours(hour, parseInt(minutes));
 
 
-    // Generate email using the new AI flow
+    // Generate initial confirmation email
     const emailContent = await generateInterviewEmail({
       name: input.name,
       email: input.email,
+      jobRole: input.jobRole,
+      companyName: input.companyName,
+      date: format(scheduledDate, "MMMM d, yyyy"),
+      time: format(scheduledDate, "h:mm a"),
+    });
+    
+    // Generate reminder email
+    const reminderContent = await generateReminderEmail({
+      name: input.name,
       jobRole: input.jobRole,
       companyName: input.companyName,
       date: format(scheduledDate, "MMMM d, yyyy"),
@@ -87,11 +97,21 @@ export async function scheduleInterviewAction(formData: FormData) {
     console.log('Interview scheduled with:', input);
 
     // Simulate sending an email by logging to console
-    console.log(`--- SIMULATING EMAIL ---`);
+    console.log(`--- SIMULATING CONFIRMATION EMAIL ---`);
     console.log(`To: ${input.email}`);
     console.log(`Subject: ${emailContent.subject}`);
     console.log(`Body:\n${emailContent.body}`);
-    console.log(`------------------------`);
+    console.log(`-----------------------------------`);
+
+    // Simulate scheduling and sending a reminder email
+    const reminderDate = subHours(scheduledDate, 2);
+    console.log(`\n--- SIMULATING REMINDER EMAIL SCHEDULING ---`);
+    console.log(`A reminder email will be sent on: ${format(reminderDate, "MMMM d, yyyy 'at' h:mm a")}`);
+    console.log(`To: ${input.email}`);
+    console.log(`Subject: ${reminderContent.subject}`);
+    console.log(`Body:\n${reminderContent.body}`);
+    console.log(`--------------------------------------------`);
+
 
     const mockInterviewId = `interview-${Date.now()}`;
     return { success: true, data: { interviewId: mockInterviewId } };
