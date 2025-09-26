@@ -14,7 +14,7 @@ import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
 import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
-import nodemailer from 'nodemailer';
+import { sendEmail } from './email';
 
 export async function generateQuestionsAction(
   input: GeneratePersonalizedQuestionsInput
@@ -84,16 +84,7 @@ export async function scheduleInterviewAction(formData: FormData) {
       time: format(scheduledDate, "h:mm a"),
     });
     
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"AI Mock Interviewer" <${process.env.GMAIL_EMAIL}>`,
+    await sendEmail({
       to: input.email,
       subject: emailContent.subject,
       html: emailContent.body.replace(/\n/g, '<br>'),
