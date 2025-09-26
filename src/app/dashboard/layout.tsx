@@ -60,7 +60,7 @@ const menuItems = [
   },
   {
     href: '/dashboard/feedback',
-    label: 'Feedback',
+    label: 'Meeting History',
     icon: ClipboardList,
   },
 ];
@@ -117,7 +117,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard')}
                   tooltip={item.label}
                 >
                   <Link href={item.href}>

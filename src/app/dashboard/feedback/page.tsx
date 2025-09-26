@@ -26,7 +26,7 @@ export default function FeedbackHistoryPage() {
     return (
         <div>
             <PageHeader
-                title="Feedback History"
+                title="Meeting History"
                 description="Review your performance from all past interviews."
             />
             {pastInterviews.length > 0 ? (
@@ -38,8 +38,8 @@ export default function FeedbackHistoryPage() {
             ) : (
                 <EmptyState
                     icon={ClipboardList}
-                    title="No Feedback Yet"
-                    description="Your feedback reports will appear here after you complete an interview."
+                    title="No Meetings Yet"
+                    description="Your meeting reports will appear here after you complete an interview."
                 />
             )}
         </div>
