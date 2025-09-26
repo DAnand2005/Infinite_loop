@@ -12,6 +12,7 @@ import {
 import { generateInterviewEmail } from '@/ai/flows/generate-interview-email';
 import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
 import { generateSpeech, type GenerateSpeechInput } from '@/ai/flows/generate-speech';
+import { continueInterviewConversation, type ContinueInterviewConversationInput } from '@/ai/flows/continue-interview-conversation';
 import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
@@ -142,5 +143,18 @@ export async function generateSpeechAction(
   } catch (error) {
     console.error(error);
     return { success: false, error: 'Failed to generate speech.' };
+  }
+}
+
+
+export async function continueConversationAction(
+  input: ContinueInterviewConversationInput
+) {
+  try {
+    const output = await continueInterviewConversation(input);
+    return { success: true, data: output };
+  } catch (error) {
+    console.error('Error in continueConversationAction:', error);
+    return { success: false, error: 'Failed to get the next AI response.' };
   }
 }
