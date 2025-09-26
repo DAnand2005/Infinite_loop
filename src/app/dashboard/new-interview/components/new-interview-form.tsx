@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { Interview, mockInterviews } from '@/lib/data';
 
 const timeSlots = [
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
@@ -38,9 +41,15 @@ export function NewInterviewForm() {
   const [resumeDataUri, setResumeDataUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [date, setDate] = useState<Date>();
+  const [time, setTime] = useState<string>('');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobRole, setJobRole] = useState('');
+  const [companyName, setCompanyName] = useState('');
+
+  const [storedInterviews, setStoredInterviews] = useLocalStorage<Interview[]>('interviews', mockInterviews);
 
   useEffect(() => {
     if (user) {
@@ -79,37 +88,40 @@ export function NewInterviewForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!resumeDataUri) {
-        setError("Please upload a resume.");
+    if (!resumeDataUri || !date || !time || !jobRole || !companyName) {
+        setError("Please fill out all required fields and upload a resume.");
         return;
     }
     setIsSubmitting(true);
     setError(null);
+    
+    // Combine date and time
+    const [hours, minutesPart] = time.split(':');
+    const [minutes, modifier] = minutesPart.split(' ');
+    let hour = parseInt(hours);
+    if (modifier === 'PM' && hour < 12) hour += 12;
+    if (modifier === 'AM' && hour === 12) hour = 0;
+    const scheduledDate = new Date(date);
+    scheduledDate.setHours(hour, parseInt(minutes));
 
-    const formData = new FormData(event.currentTarget);
-    formData.append('resumeDataUri', resumeDataUri);
-    formData.append('name', name);
-    formData.append('email', email);
-    if(date) {
-        formData.append('date', date.toISOString());
-    }
+    const newInterview: Interview = {
+        id: `interview-${Date.now()}`,
+        role: jobRole,
+        company: companyName,
+        date: scheduledDate.toISOString(),
+        status: 'Scheduled',
+    };
+    
+    // Simulate server action
+    await scheduleInterviewAction(new FormData(event.currentTarget));
 
-    const result = await scheduleInterviewAction(formData);
+    setStoredInterviews([...storedInterviews, newInterview]);
 
-    if (result.success) {
-      toast({
+    toast({
         title: 'Interview Scheduled!',
         description: 'Your new mock interview has been added to your dashboard.',
-      });
-      router.push('/dashboard');
-    } else {
-      setError(result.error || 'An unknown error occurred.');
-      toast({
-        title: 'Error',
-        description: result.error || 'Failed to schedule interview.',
-        variant: 'destructive',
-      });
-    }
+    });
+    router.push('/dashboard');
     
     setIsSubmitting(false);
   };
@@ -134,6 +146,16 @@ export function NewInterviewForm() {
                 <Input id="email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
            </div>
+           <div className="grid sm:grid-cols-2 gap-4">
+             <div className="space-y-2">
+                  <Label htmlFor="job-role">Job Role</Label>
+                  <Input id="job-role" name="jobRole" value={jobRole} onChange={(e) => setJobRole(e.target.value)} required placeholder="e.g., Senior Frontend Developer"/>
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="company-name">Company Name</Label>
+                  <Input id="company-name" name="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required placeholder="e.g., TechCorp"/>
+              </div>
+            </div>
            <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="date">Interview Date</Label>
@@ -162,14 +184,14 @@ export function NewInterviewForm() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="time">Interview Time</Label>
-                <Select name="time">
+                <Select name="time" onValueChange={setTime} value={time}>
                     <SelectTrigger>
                         <Clock className="mr-2 h-4 w-4" />
                         <SelectValue placeholder="Select a time" />
                     </SelectTrigger>
                     <SelectContent>
-                        {timeSlots.map(time => (
-                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                        {timeSlots.map(slot => (
+                            <SelectItem key={slot} value={slot}>{slot}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -190,7 +212,7 @@ export function NewInterviewForm() {
                     </p>
                     <p className="text-xs text-muted-foreground">PDF or DOCX (MAX. 5MB)</p>
                   </div>
-                  <Input id="resume-upload" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.docx" />
+                  <Input id="resume-upload" name="resume" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.docx" />
                 </label>
               </div>
             ) : (
@@ -204,7 +226,7 @@ export function NewInterviewForm() {
                     </Button>
                 </div>
             )}
-            {error && <p className="text-sm text-destructive mt-2">{error}</p>}
+            
           </div>
           <div className="space-y-2">
             <Label htmlFor="job-description">Job Description</Label>
@@ -213,9 +235,12 @@ export function NewInterviewForm() {
               name="jobDescription"
               placeholder="Paste the job description here..."
               rows={10}
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
               required
             />
           </div>
+          {error && <p className="text-sm text-destructive mt-2">{error}</p>}
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isSubmitting || !resumeFile}>

@@ -1,11 +1,23 @@
+
+'use client';
+
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { mockInterviews, type Interview } from '@/lib/data';
 import { format } from 'date-fns';
 import { ArrowRight, Calendar, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useEffect, useState } from 'react';
 
 function InterviewCard({ interview }: { interview: Interview }) {
   return (
@@ -27,7 +39,9 @@ function InterviewCard({ interview }: { interview: Interview }) {
       <CardFooter>
         {interview.status === 'Scheduled' ? (
           <Button asChild className="w-full">
-            <Link href={`/dashboard/interview/${interview.id}`}>Start Interview</Link>
+            <Link href={`/dashboard/interview/${interview.id}`}>
+              Start Interview
+            </Link>
           </Button>
         ) : (
           <Button asChild variant="secondary" className="w-full">
@@ -42,10 +56,22 @@ function InterviewCard({ interview }: { interview: Interview }) {
 }
 
 export default function DashboardPage() {
-  const scheduledInterviews = mockInterviews.filter(
+  const [storedInterviews, setStoredInterviews] = useLocalStorage<Interview[]>(
+    'interviews',
+    mockInterviews
+  );
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const interviews = isClient ? storedInterviews : mockInterviews;
+
+  const scheduledInterviews = interviews.filter(
     (i) => i.status === 'Scheduled'
   );
-  const completedInterviews = mockInterviews.filter(
+  const completedInterviews = interviews.filter(
     (i) => i.status === 'Completed'
   );
 
@@ -65,7 +91,9 @@ export default function DashboardPage() {
 
       <div className="space-y-8">
         <section>
-          <h2 className="text-2xl font-semibold font-headline mb-4">Upcoming Interviews</h2>
+          <h2 className="text-2xl font-semibold font-headline mb-4">
+            Upcoming Interviews
+          </h2>
           {scheduledInterviews.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {scheduledInterviews.map((interview) => (
@@ -73,14 +101,18 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">You have no upcoming interviews scheduled.</p>
+            <p className="text-muted-foreground">
+              You have no upcoming interviews scheduled.
+            </p>
           )}
         </section>
 
         <Separator />
 
         <section>
-          <h2 className="text-2xl font-semibold font-headline mb-4">Past Interviews</h2>
+          <h2 className="text-2xl font-semibold font-headline mb-4">
+            Past Interviews
+          </h2>
           {completedInterviews.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {completedInterviews.map((interview) => (
@@ -88,7 +120,9 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">You haven't completed any interviews yet.</p>
+            <p className="text-muted-foreground">
+              You haven't completed any interviews yet.
+            </p>
           )}
         </section>
       </div>
