@@ -75,7 +75,7 @@ const generateSpeechFlow = ai.defineFlow(
       prompt: text,
     });
 
-    if (!media) {
+    if (!media || !media.url) {
       throw new Error('No media was returned from the TTS model.');
     }
 
