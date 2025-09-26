@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-image-1",
+      "description": "A person confidently participating in a remote job interview from their modern home office.",
+      "imageUrl": "https://images.unsplash.com/photo-1521791136064-7986c2920216?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxqb2IlMjBpbnRlcnZpZXd8ZW58MHx8fHwxNzU4ODY4MzEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "job interview"
+    },
+    {
+      "id": "ai-avatar",
+      "description": "A friendly and professional AI avatar for the mock interviewer.",
+      "imageUrl": "https://images.unsplash.com/photo-1723201223411-7a53a744055c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBhdmF0YXJ8ZW58MHx8fHwxNzU4ODY4MzEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "professional avatar"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "A profile picture for a user account.",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NTg3ODg5NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
