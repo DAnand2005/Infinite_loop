@@ -13,14 +13,15 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Mic, Video, Volume2, PhoneOff, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Mic, Video, Volume2, PhoneOff, ArrowLeft, ArrowRight, PlayCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { Interview } from '@/lib/data';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { mockInterviews } from '@/lib/data';
+import { generateSpeechAction } from '@/lib/actions';
 
 export function InterviewSimulation({ interviewId }: { interviewId: string }) {
   const router = useRouter();
@@ -31,11 +32,18 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [storedInterviews, setStoredInterviews] = useLocalStorage<Interview[]>('interviews', mockInterviews);
 
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
   useEffect(() => {
     try {
       const storedQuestions = localStorage.getItem(`interview_questions_${interviewId}`);
       if (storedQuestions) {
-        setQuestions(JSON.parse(storedQuestions));
+        const parsedQuestions = JSON.parse(storedQuestions);
+        setQuestions(parsedQuestions);
+        // Fetch audio for the first question
+        fetchAudio(parsedQuestions[0]);
       } else {
         setError('Interview questions could not be loaded. Please start the interview again from the dashboard.');
       }
@@ -44,28 +52,52 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
     } finally {
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interviewId]);
 
+  const fetchAudio = async (text: string) => {
+    if (!text) return;
+    setIsAudioLoading(true);
+    setAudioUrl(null);
+    const result = await generateSpeechAction({ text });
+    if (result.success && result.data) {
+      setAudioUrl(result.data.audioDataUri);
+    } else {
+      console.error("Failed to generate speech:", result.error);
+      // You could set a specific error state for audio failure here if needed
+    }
+    setIsAudioLoading(false);
+  };
+
+  useEffect(() => {
+    if (audioUrl && audioRef.current) {
+        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+    }
+  }, [audioUrl]);
+
   const handleEndInterview = () => {
-    // Update the status of the current interview to "Completed"
     const updatedInterviews = storedInterviews.map(interview => 
       interview.id === interviewId ? { ...interview, status: 'Completed' as const } : interview
     );
     setStoredInterviews(updatedInterviews);
-    // Clear the questions from local storage
     localStorage.removeItem(`interview_questions_${interviewId}`);
     router.push(`/dashboard/feedback/${interviewId}`);
+  };
+  
+  const handleQuestionChange = (newIndex: number) => {
+    setCurrentQuestionIndex(newIndex);
+    fetchAudio(questions[newIndex]);
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      handleQuestionChange(currentQuestionIndex + 1);
     }
   };
 
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      handleQuestionChange(currentQuestionIndex - 1);
     }
   };
 
@@ -105,6 +137,20 @@ export function InterviewSimulation({ interviewId }: { interviewId: string }) {
                 <div className="p-4 rounded-lg bg-muted flex-1 min-h-[80px] flex items-center">
                     <p className="font-semibold">{questions[currentQuestionIndex]}</p>
                 </div>
+               </div>
+               <div className="flex items-center justify-center gap-4">
+                 {isAudioLoading ? (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Generating audio...</span>
+                    </div>
+                 ) : (
+                    audioUrl && (
+                        <audio ref={audioRef} src={audioUrl} controls className="w-full">
+                            Your browser does not support the audio element.
+                        </audio>
+                    )
+                 )}
                </div>
                <div>
                 <Textarea placeholder="You can jot down your thoughts here (optional)..." rows={8}/>

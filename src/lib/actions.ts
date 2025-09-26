@@ -11,6 +11,7 @@ import {
 } from '@/ai/flows/generate-personalized-questions';
 import { generateInterviewEmail } from '@/ai/flows/generate-interview-email';
 import { generateReminderEmail } from '@/ai/flows/generate-reminder-email';
+import { generateSpeech, type GenerateSpeechInput } from '@/ai/flows/generate-speech';
 import { z } from 'zod';
 import { format, subHours } from 'date-fns';
 import type { Interview } from './data';
@@ -129,5 +130,17 @@ export async function scheduleInterviewAction(formData: FormData) {
         return { success: false, error: 'Invalid form data provided.' };
     }
     return { success: false, error: 'Failed to schedule interview. Please check server logs for email sending issues.' };
+  }
+}
+
+export async function generateSpeechAction(
+  input: GenerateSpeechInput
+) {
+  try {
+    const output = await generateSpeech(input);
+    return { success: true, data: output };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: 'Failed to generate speech.' };
   }
 }
