@@ -10,8 +10,7 @@ import { ClientService } from "@/services/clients.service";
 import { ResponseService } from "@/services/responses.service";
 import { useInterviews } from "@/contexts/interviews.context";
 import Modal from "@/components/dashboard/Modal";
-import { Gem, Plus } from "lucide-react";
-import Image from "next/image";
+import { Gem, Plus, Rocket } from "lucide-react";
 
 function Interviews() {
   const { interviews, interviewsLoading } = useInterviews();
@@ -92,10 +91,10 @@ function Interviews() {
     <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
       <div className="flex flex-col items-left">
         <h2 className="mr-2 text-2xl font-semibold tracking-tight mt-8">
-          My Interviews
+          Dashboard
         </h2>
         <h3 className=" text-sm tracking-tight text-gray-600 font-medium ">
-          Start getting responses now!
+          Your interview insights await.
         </h3>
         <div className="relative flex items-center mt-1 flex-wrap">
           {currentPlan == "free_trial_over" ? (
@@ -119,24 +118,19 @@ function Interviews() {
               {isModalOpen && (
                 <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
                   <div className="flex flex-col space-y-4">
-                    <div className="flex justify-center text-indigo-600">
+                    <div className="flex justify-center text-sky-500">
                       <Gem />
                     </div>
                     <h3 className="text-xl font-semibold text-center">
-                      Upgrade to Pro
+                      Unlock Full Potential
                     </h3>
                     <p className="text-l text-center">
                       You have reached your limit for the free trial. Please
-                      upgrade to pro to continue using our features.
+                      upgrade to unlock our full potential.
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex justify-center items-center">
-                        <Image
-                          src={"/premium-plan-icon.png"}
-                          alt="Graphic"
-                          width={299}
-                          height={300}
-                        />
+                        <Rocket className="w-3/4 h-3/4"/>
                       </div>
 
                       <div className="grid grid-rows-2 gap-2">
@@ -148,7 +142,7 @@ function Interviews() {
                             <li>Limited Features</li>
                           </ul>
                         </div>
-                        <div className="p-4 border rounded-lg">
+                        <div className="p-4 border rounded-lg bg-sky-100">
                           <h4 className="text-lg font-medium">Pro Plan</h4>
                           <ul className="list-disc pl-5 mt-2">
                             <li>Flexible Pay-Per-Response</li>
@@ -160,7 +154,7 @@ function Interviews() {
                     </div>
                     <p className="text-l text-center">
                       Contact{" "}
-                      <span className="font-semibold">founders@folo-up.co</span>{" "}
+                      <span className="font-semibold">founders@interro.ai</span>{" "}
                       to upgrade your plan.
                     </p>
                   </div>

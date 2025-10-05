@@ -30,17 +30,17 @@ function PopupLoader() {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://folo-up.co/"
+        href="https://interro.ai/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            Folo<span className="text-indigo-600">Up</span>
+            Interro<span className="text-sky-500">AI</span>
           </span>
         </div>
-        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500" />
+        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-sky-500" />
       </a>
     </div>
   );
@@ -64,17 +64,17 @@ function PopUpMessage({ title, description, image }: PopupProps) {
       </div>
       <a
         className="flex flex-row justify-center align-middle mt-3"
-        href="https://folo-up.co/"
+        href="https://interro.ai/"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
           Powered by{" "}
           <span className="font-bold">
-            Folo<span className="text-indigo-600">Up</span>
+            Interro<span className="text-sky-500">AI</span>
           </span>
         </div>
-        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500" />
+        <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-sky-500" />
       </a>
     </div>
   );
@@ -118,7 +118,7 @@ function InterviewInterface({ params }: Props) {
           interviewNotFound ? (
             <PopUpMessage
               title="Invalid URL"
-              description="The interview link you're trying to access is invalid. Please check the URL and try again."
+              description="The interview link you\'re trying to access is invalid. Please check the URL and try again."
               image="/invalid-url.png"
             />
           ) : (
@@ -148,10 +148,10 @@ function InterviewInterface({ params }: Props) {
           Powered by{" "}
           <a
             className="font-bold underline"
-            href="www.folo-up.co"
+            href="www.interro.ai"
             target="_blank"
           >
-            Folo<span className="text-indigo-600">Up</span>
+            Interro<span className="text-sky-500">AI</span>
           </a>
         </div>
       </div>
