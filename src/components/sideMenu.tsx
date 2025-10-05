@@ -1,43 +1,58 @@
 "use client";
 
 import React from "react";
-import { PlayCircleIcon, SpeechIcon } from "lucide-react";
+import { Briefcase, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 function SideMenu() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const navItems = [
+    {
+      name: "Interviews",
+      icon: <Briefcase className="h-5 w-5" />,
+      path: "/dashboard",
+      check: () => pathname.endsWith("/dashboard") || pathname.includes("/interviews"),
+    },
+    {
+      name: "Interviewers",
+      icon: <Users className="h-5 w-5" />,
+      path: "/dashboard/interviewers",
+      check: () => pathname.includes("/interviewers"),
+    },
+  ];
+
   return (
-    <div className="z-[10] bg-slate-100 p-6 w-[200px] fixed top-[64px] left-0 h-full">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-col justify-between gap-2">
-          <div
-            className={`flex flex-row p-3 rounded-md hover:bg-slate-200 cursor-pointer ${
-              pathname.endsWith("/dashboard") ||
-              pathname.includes("/interviews")
-                ? "bg-sky-200"
-                : "bg-slate-100"
-            }`}
-            onClick={() => router.push("/dashboard")}
-          >
-            <PlayCircleIcon className="font-thin	 mr-2" />
-            <p className="font-medium ">Interviews</p>
-          </div>
-          <div
-            className={`flex flex-row p-3 rounded-md hover:bg-slate-200 cursor-pointer ${
-              pathname.endsWith("/interviewers")
-                ? "bg-sky-200"
-                : "bg-slate-100"
-            }`}
-            onClick={() => router.push("/dashboard/interviewers")}
-          >
-            <SpeechIcon className="font-thin mr-2" />
-            <p className="font-medium ">Interviewers</p>
-          </div>
-        </div>
+    <aside className="z-10 w-64 fixed top-16 left-0 h-full bg-card border-r border-border hidden md:flex flex-col">
+      <div className="p-4">
+        <h2 className="text-sm font-semibold text-muted-foreground tracking-wider">
+          NAVIGATION
+        </h2>
       </div>
-    </div>
+      <nav className="flex-grow px-2">
+        {navItems.map((item) => (
+          <a
+            key={item.name}
+            href={item.path}
+            onClick={(e) => {
+              e.preventDefault();
+              router.push(item.path);
+            }}
+            className={`flex items-center gap-3 px-4 py-3 my-1 rounded-lg transition-colors cursor-pointer
+              ${
+                item.check()
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground hover:bg-muted"
+              }
+            `}
+          >
+            {item.icon}
+            <span className="font-medium text-sm">{item.name}</span>
+          </a>
+        ))}
+      </nav>
+    </aside>
   );
 }
 

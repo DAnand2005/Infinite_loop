@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import { Interview, Question } from "@/types/interview";
 import React, { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Plus, SaveIcon, TrashIcon } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import { useInterviewers } from "@/contexts/interviewers.context";
 import QuestionCard from "@/components/dashboard/interview/create-popup/questionCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,11 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useInterviews } from "@/contexts/interviews.context";
 import { InterviewService } from "@/services/interviews.service";
-import { CardTitle } from "../../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +26,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 type EditInterviewProps = {
   interview: Interview | undefined;
@@ -35,348 +37,214 @@ type EditInterviewProps = {
 function EditInterview({ interview }: EditInterviewProps) {
   const { interviewers } = useInterviewers();
   const { fetchInterviews } = useInterviews();
-
-  const [description, setDescription] = useState<string>(
-    interview?.description || "",
-  );
-  const [objective, setObjective] = useState<string>(
-    interview?.objective || "",
-  );
-  const [numQuestions, setNumQuestions] = useState<number>(
-    interview?.question_count || 1,
-  );
-  const [duration, setDuration] = useState<Number>(
-    Number(interview?.time_duration),
-  );
-  const [questions, setQuestions] = useState<Question[]>(
-    interview?.questions || [],
-  );
-  const [selectedInterviewer, setSelectedInterviewer] = useState(
-    interview?.interviewer_id,
-  );
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(
-    interview?.is_anonymous || false,
-  );
-
-  const [isClicked, setIsClicked] = useState(false);
-
-  const endOfListRef = useRef<HTMLDivElement>(null);
-  const prevQuestionLengthRef = useRef(questions.length);
   const router = useRouter();
 
+  const [description, setDescription] = useState(interview?.description || '');
+  const [objective, setObjective] = useState(interview?.objective || '');
+  const [numQuestions, setNumQuestions] = useState(interview?.question_count || 1);
+  const [duration, setDuration] = useState(Number(interview?.time_duration) || 5);
+  const [questions, setQuestions] = useState<Question[]>(interview?.questions || []);
+  const [selectedInterviewer, setSelectedInterviewer] = useState(interview?.interviewer_id);
+  const [isAnonymous, setIsAnonymous] = useState(interview?.is_anonymous || false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const endOfListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (questions.length > (interview?.questions.length || 0)) {
+      endOfListRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [questions.length, interview?.questions.length]);
+
   const handleInputChange = (id: string, newQuestion: Question) => {
-    setQuestions(
-      questions.map((question) =>
-        question.id === id ? { ...question, ...newQuestion } : question,
-      ),
-    );
+    setQuestions(questions.map((q) => (q.id === id ? { ...q, ...newQuestion } : q)));
   };
 
   const handleDeleteQuestion = (id: string) => {
-    if (questions.length === 1) {
-      setQuestions(
-        questions.map((question) => ({
-          ...question,
-          question: "",
-          follow_up_count: 1,
-        })),
-      );
-
-      return;
+    if (questions.length > 1) {
+      setQuestions(questions.filter((q) => q.id !== id));
     }
-    setQuestions(questions.filter((question) => question.id !== id));
-    setNumQuestions(numQuestions - 1);
   };
 
   const handleAddQuestion = () => {
     if (questions.length < numQuestions) {
-      setQuestions([
-        ...questions,
-        { id: uuidv4(), question: "", follow_up_count: 1 },
-      ]);
+      setQuestions([...questions, { id: uuidv4(), question: "", follow_up_count: 1 }]);
     }
   };
 
   const onSave = async () => {
-    const questionCount =
-      questions.length < numQuestions ? questions.length : numQuestions;
+    if (!interview) return;
+    setIsSaving(true);
 
     const interviewData = {
-      objective: objective,
-      questions: questions,
-      interviewer_id: Number(selectedInterviewer),
-      question_count: questionCount,
-      time_duration: Number(duration),
-      description: description,
+      objective,
+      questions,
+      interviewer_id: selectedInterviewer ? Number(selectedInterviewer) : undefined,
+      question_count: numQuestions,
+      time_duration: duration,
+      description,
       is_anonymous: isAnonymous,
     };
 
     try {
-      if (!interview) {
-        return;
-      }
-      const response = await InterviewService.updateInterview(
-        interviewData,
-        interview?.id,
-      );
-      setIsClicked(false);
-      fetchInterviews();
+      await InterviewService.updateInterview(interviewData, interview.id);
+      await fetchInterviews();
       toast.success("Interview updated successfully.", {
         position: "bottom-right",
         duration: 3000,
       });
-      router.push(`/interviews/${interview?.id}`);
+      router.push(`/interviews/${interview.id}`);
     } catch (error) {
-      console.error("Error creating interview:", error);
+      console.error("Error updating interview:", error);
+      toast.error("Failed to update interview.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const onDeleteInterviewClick = async () => {
-    if (!interview) {
-      return;
-    }
-
+  const onDeleteInterview = async () => {
+    if (!interview) return;
     try {
       await InterviewService.deleteInterview(interview.id);
+      toast.success("Interview deleted successfully.", {
+        position: "bottom-right",
+        duration: 3000,
+      });
       router.push("/dashboard");
     } catch (error) {
       console.error("Error deleting interview:", error);
-      toast.error("Failed to delete the interview.", {
+      toast.error("Failed to delete interview.", {
         position: "bottom-right",
         duration: 3000,
       });
     }
   };
 
-  useEffect(() => {
-    if (questions.length > prevQuestionLengthRef.current) {
-      endOfListRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    prevQuestionLengthRef.current = questions.length;
-  }, [questions.length]);
-
   return (
-    <div className=" h-screen z-[10] mx-2">
-      <div className="flex flex-col bg-gray-200 rounded-md min-h-[120px] p-2 pl-4">
-        <div>
-          <div
-            className="mt-2 ml-1 pr-2 inline-flex items-center text-indigo-600 hover:cursor-pointer"
-            onClick={() => {
-              router.push(`/interviews/${interview?.id}`);
-            }}
-          >
-            <ArrowLeft className="mr-2" />
-            <p className="text-sm font-semibold">Back to Summary</p>
-          </div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <p className="mt-3 mb-1 ml-2 font-medium">
-            Interview Description{" "}
-            <span className="text-xs ml-2 font-normal">
-              (Your respondents will see this.)
-            </span>
-          </p>
-          <div className="flex flex-row gap-3">
-            <Button
-              disabled={isClicked}
-              className="bg-indigo-600 hover:bg-indigo-800 mt-2"
-              onClick={() => {
-                setIsClicked(true);
-                onSave();
-              }}
-            >
-              Save <SaveIcon size={16} className="ml-2" />
+    <div className="bg-background text-foreground p-4 sm:p-6 md:p-8">
+        <CardHeader className="flex-row items-center justify-between p-0 mb-6">
+            <Button variant='ghost' onClick={() => router.push(`/interviews/${interview?.id}`)} className='pl-0'>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Summary
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger>
-                <Button
-                  disabled={isClicked}
-                  className="bg-red-500 hover:bg-red-600 mr-5 mt-2 p-2"
-                >
-                  <TrashIcon size={16} className="" />
+            <div className="flex items-center gap-2">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant='destructive' size='icon'><Trash2 className="h-4 w-4" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this interview and all its associated responses.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDeleteInterview} className='bg-destructive hover:bg-destructive/90'>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <Button onClick={onSave} disabled={isSaving}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    this interview.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-indigo-600 hover:bg-indigo-800"
-                    onClick={async () => {
-                      await onDeleteInterviewClick();
-                    }}
-                  >
-                    Continue
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-        <textarea
-          value={description}
-          className="h-fit mt-3 ml-2 py-2 border-2 rounded-md w-[75%] px-2 border-gray-400"
-          placeholder="Enter your interview description here."
-          rows={3}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-          onBlur={(e) => {
-            setDescription(e.target.value.trim());
-          }}
-        />
-        <p className="mt-3 mb-1 ml-2 font-medium">Objective</p>
-        <textarea
-          value={objective}
-          className="h-fit mt-3 ml-2 py-2 border-2 rounded-md w-[75%] px-2 border-gray-400"
-          placeholder="Enter your interview objective here."
-          rows={3}
-          onChange={(e) => setObjective(e.target.value)}
-          onBlur={(e) => setObjective(e.target.value.trim())}
-        />
-        <div className="flex flex-row gap-3">
-          <div>
-            <p className="mt-3 mb-1 ml-2 font-medium">Interviewer</p>
-            <div className=" flex items-center mt-1">
-              <div
-                id="slider-3"
-                className=" h-32 pt-1 ml-2 overflow-x-scroll scroll whitespace-nowrap scroll-smooth scrollbar-hide w-[27.5rem]"
-              >
-                {interviewers.map((item) => (
-                  <div
-                    className=" p-0 inline-block cursor-pointer hover:scale-105 ease-in-out duration-300  ml-1 mr-3 rounded-xl shrink-0 overflow-hidden"
-                    key={item.id}
-                  >
-                    <div
-                      className={`w-[96px] overflow-hidden rounded-full ${
-                        selectedInterviewer === item.id
-                          ? "border-4 border-indigo-600"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedInterviewer(item.id);
-                      }}
-                    >
-                      <Image
-                        src={item.image}
-                        alt="Picture of the interviewer"
-                        width={70}
-                        height={70}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <CardTitle className="mt-0 text-xs text-center">
-                      {item.name}
-                    </CardTitle>
-                  </div>
-                ))}
-              </div>
             </div>
-          </div>
-        </div>
-        <label className="flex-col mt-2 ml-2 w-full">
-          <div className="flex items-center cursor-pointer">
-            <span className="text-sm font-medium">
-              Do you prefer the interviewees&apos; responses to be anonymous?
-            </span>
-            <Switch
-              checked={isAnonymous}
-              className={`ml-4 mt-1 border-2 border-gray-300 ${
-                isAnonymous ? "bg-indigo-600" : "bg-white"
-              }`}
-              onCheckedChange={(checked) => setIsAnonymous(checked)}
-            />
-          </div>
-          <span
-            style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
-            className="font-light text-xs italic w-full text-left block"
-          >
-            Note: If not anonymous, the interviewee&apos;s email and name will
-            be collected.
-          </span>
-        </label>
-        <div className="flex flex-row justify-between w-[75%] gap-3 ml-2">
-          <div className="flex flex-row justify-center items-center mt-5 ">
-            <h3 className="font-medium ">No. of Questions:</h3>
-            <input
-              type="number"
-              step="1"
-              max="5"
-              min={questions.length.toString()}
-              className="border-2 text-center focus:outline-none  bg-slate-100 rounded-md border-gray-500 w-14 px-2 py-0.5 ml-3"
-              value={numQuestions}
-              onChange={(e) => {
-                let value = e.target.value;
-                if (
-                  value === "" ||
-                  (Number.isInteger(Number(value)) && Number(value) > 0)
-                ) {
-                  if (Number(value) > 5) {
-                    value = "5";
-                  }
-                  setNumQuestions(Number(value));
-                }
-              }}
-            />
-          </div>
-          <div className="flex flex-row items-center mt-5">
-            <h3 className="font-medium ">Duration (mins):</h3>
-            <input
-              type="number"
-              step="1"
-              max="10"
-              min="1"
-              className="border-2 text-center focus:outline-none bg-slate-100 rounded-md border-gray-500 w-14 px-2 py-0.5 ml-3"
-              value={Number(duration)}
-              onChange={(e) => {
-                let value = e.target.value;
-                if (
-                  value === "" ||
-                  (Number.isInteger(Number(value)) && Number(value) > 0)
-                ) {
-                  if (Number(value) > 10) {
-                    value = "10";
-                  }
-                  setDuration(Number(value));
-                }
-              }}
-            />
-          </div>
-        </div>
-        <p className="mt-3 mb-1 ml-2 font-medium">Questions</p>
-        <ScrollArea className="flex ml-2 p-2 pr-4 mb-4 flex-col justify-center items-center w-[75%] max-h-[500px] bg-slate-100 rounded-md text-sm mt-3">
-          {questions.map((question, index) => (
-            <QuestionCard
-              key={question.id}
-              questionNumber={index + 1}
-              questionData={question}
-              onDelete={handleDeleteQuestion}
-              onQuestionChange={handleInputChange}
-            />
-          ))}
-          <div ref={endOfListRef} />
-          {questions.length < numQuestions ? (
-            <div
-              className="border-indigo-600 opacity-75 hover:opacity-100 w-fit text-center rounded-full mx-auto"
-              onClick={handleAddQuestion}
-            >
-              <Plus
-                size={45}
-                strokeWidth={2.2}
-                className="text-indigo-600 text-center cursor-pointer"
-              />
+        </CardHeader>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="md:col-span-2 space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Core Details</CardTitle>
+                        <CardDescription>Adjust the main details of your interview.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="objective">Objective</Label>
+                            <Textarea id="objective" value={objective} onChange={(e) => setObjective(e.target.value)} placeholder="What is the primary goal of this interview?" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Interview Description</Label>
+                            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the interview for your candidates." rows={4} />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Questions</CardTitle>
+                        <CardDescription>Add, remove, or edit the questions for this interview.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ScrollArea className="h-[400px] p-1 -m-1 pr-4">
+                            <div className="space-y-4">
+                                {questions.map((q, i) => (
+                                    <QuestionCard key={q.id} questionNumber={i + 1} questionData={q} onQuestionChange={handleInputChange} onDelete={handleDeleteQuestion} isDeletable={questions.length > 1} />
+                                ))}
+                                <div ref={endOfListRef} />
+                            </div>
+                        </ScrollArea>
+                        {questions.length < numQuestions && (
+                            <div className='flex justify-center mt-4'>
+                                <Button variant='outline' onClick={handleAddQuestion}>
+                                    <Plus size={16} className='mr-2' /> Add Question
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
-          ) : (
-            <></>
-          )}
-        </ScrollArea>
-      </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Interviewer</CardTitle>
+                        <CardDescription>Select the AI personality for the interview.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ScrollArea className="w-full whitespace-nowrap rounded-md">
+                            <div className="flex w-max space-x-4 pb-4">
+                            {interviewers.map((item) => (
+                                <div key={item.id} onClick={() => setSelectedInterviewer(item.id)} className='shrink-0 text-center'>
+                                    <div className='w-24 h-24 rounded-full overflow-hidden cursor-pointer ring-2 ring-transparent hover:ring-primary transition-all duration-300 data-[selected=true]:ring-primary' data-selected={selectedInterviewer === item.id}>
+                                        <Image src={item.image} alt={item.name} width={96} height={96} className="w-full h-full object-cover" />
+                                    </div>
+                                    <p className="mt-2 text-sm font-medium">{item.name}</p>
+                                </div>
+                            ))}
+                            </div>
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                            <div>
+                                <Label htmlFor="anonymous-switch">Anonymous Responses</Label>
+                                <p className="text-xs text-muted-foreground">Hide candidate names and emails.</p>
+                            </div>
+                            <Switch id="anonymous-switch" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="num-questions">Number of Questions</Label>
+                            <Input id="num-questions" type="number" min={questions.length} max="5" value={numQuestions} onChange={(e) => setNumQuestions(Math.min(5, Number(e.target.value)))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="duration">Max Duration (mins)</Label>
+                            <Input id="duration" type="number" min="1" max="10" value={duration} onChange={(e) => setDuration(Math.min(10, Number(e.target.value)))} />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
     </div>
   );
 }

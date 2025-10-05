@@ -1,37 +1,43 @@
 import Link from "next/link";
 import React from "react";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 
 function Navbar() {
   return (
-    <div className="fixed inset-x-0 top-0 bg-slate-100  z-[10] h-fit  py-4 ">
-      <div className="flex items-center justify-between h-full gap-2 px-8 mx-auto">
-        <div className="flex flex-row gap-3 justify-center">
+    <header className="fixed inset-x-0 top-0 z-20 bg-card border-b border-border">
+      <div className="flex items-center justify-between h-16 px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div className="flex items-center gap-4">
           <Link href={"/dashboard"} className="flex items-center gap-2">
-            <p className="px-2 py-1 text-2xl font-bold text-black">
-              Interro<span className="text-sky-500">AI</span>
+            <p className="text-xl font-bold text-foreground">
+              Interro<span className="text-primary">AI</span>
             </p>
           </Link>
-          <p className="my-auto text-xl">/</p>
-          <div className="my-auto">
+          <div className="hidden sm:block">
             <OrganizationSwitcher
-              afterCreateOrganizationUrl="/dashboard"
               hidePersonal={true}
+              afterCreateOrganizationUrl="/dashboard"
               afterSelectOrganizationUrl="/dashboard"
               afterLeaveOrganizationUrl="/dashboard"
               appearance={{
+                baseTheme: dark,
+                elements: {
+                  organizationSwitcherTrigger:
+                    "focus:shadow-none border-border",
+                },
                 variables: {
-                  fontSize: "0.9rem",
+                  colorPrimary: "hsl(217 91% 60%)",
+                  colorBackground: "hsl(215 28% 12%)",
                 },
               }}
             />
           </div>
         </div>
         <div className="flex items-center">
-          <UserButton afterSignOutUrl="/sign-in" signInUrl="/sign-in" />
+          <UserButton afterSignOutUrl="/sign-in" appearance={{ baseTheme: dark }} />
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 

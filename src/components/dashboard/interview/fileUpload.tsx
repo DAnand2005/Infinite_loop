@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
 import { toast } from "sonner";
-import { Inbox } from "lucide-react";
+import { UploadCloud, CheckCircle2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { parsePdf } from "@/actions/parse-pdf";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   isUploaded: boolean;
@@ -23,19 +24,20 @@ function FileUpload({
 }: Props) {
   const [uploading, setUploading] = useState(false);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
     onDrop: async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
+      if (!file) return;
+
       setFileName(file.name);
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("Please upload a file smaller than 10MB.", {
-          position: "bottom-right",
-          duration: 3000,
+        toast.error("File is too large", {
+            description: "Please upload a file smaller than 10MB.",
+            position: "bottom-right",
+            duration: 3000,
         });
-
         return;
       }
 
@@ -48,13 +50,13 @@ function FileUpload({
         if (!result.success) {
           throw new Error(result.error);
         }
-        const fullText = result.text || "";
-        setUploadedDocumentContext(fullText);
+
+        setUploadedDocumentContext(result.text || "");
         setIsUploaded(true);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error("Error reading PDF", {
-          description: "Please try again.",
+          description: "Could not extract text from the PDF. Please try again.",
           duration: 3000,
         });
       } finally {
@@ -64,34 +66,43 @@ function FileUpload({
   });
 
   return (
-    <div className="p-2 bg-white rounded-xl w-full">
-      {!isUploaded ? (
+    <div className='rounded-lg border bg-muted/20 border-border'>
+      {uploading ? (
+        <div className="flex flex-col items-center justify-center p-8 gap-2"> 
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className='text-sm text-muted-foreground'>Processing your document...</p>
+        </div>
+      ) : isUploaded ? (
+        <div className="flex items-center justify-between p-4 pl-6">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-6 w-6 text-green-500" />
+            <p className="text-sm font-medium text-foreground">{fileName}</p>
+          </div>
+          <Button 
+            variant="link" 
+            size="sm" 
+            onClick={() => { 
+              setIsUploaded(false); 
+              setFileName(''); 
+              setUploadedDocumentContext(''); 
+            }}
+          >
+            Re-upload
+          </Button>
+        </div>
+      ) : (
         <div
           {...getRootProps({
             className:
-              "border-dashed border-2 rounded-xl cursor-pointer bg-slate-100 py-8 flex justify-center items-center flex-col",
+              "border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center cursor-pointer hover:bg-muted/30 transition-colors duration-200 ease-in-out",
           })}
         >
           <input {...getInputProps()} />
-          <>
-            <Inbox className="w-10 h-10 text-blue-500" />
-            <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
-          </>
-        </div>
-      ) : (
-        <div className="text-left">
-          <p className="mt-2 text-sm text-slate-600">
-            File uploaded successfully. {fileName}
-          </p>
-          <p className="mt-2 text-xs text-slate-600">
-            Do you want to{" "}
-            <span
-              className="underline text-slate-950 cursor-pointer font-semibold"
-              onClick={() => setIsUploaded(false)}
-            >
-              Reupload?
-            </span>
-          </p>
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <UploadCloud className="h-8 w-8" />
+            <p className="font-medium">Drag & drop your PDF here</p>
+            <p className="text-xs">Max file size: 10MB</p>
+          </div>
         </div>
       )}
     </div>

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useOrganization } from "@clerk/nextjs";
 import { useInterviews } from "@/contexts/interviews.context";
 import { Share2, Filter, Pencil, UserIcon, Eye, Palette } from "lucide-react";
@@ -50,7 +50,8 @@ interface Props {
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
 function InterviewHome({ params, searchParams }: Props) {
-  const { interviewId } = params;
+  const { interviewId } = use(params);
+  const resolvedSearchParams = use(searchParams);
   const [interview, setInterview] = useState<Interview>();
   const [responses, setResponses] = useState<Response[]>();
   const { getInterviewById } = useInterviews();
@@ -145,7 +146,7 @@ function InterviewHome({ params, searchParams }: Props) {
       setResponses(
         responses.filter((response) => response.call_id !== deletedCallId),
       );
-      if (searchParams.call === deletedCallId) {
+      if (resolvedSearchParams.call === deletedCallId) {
         router.push(`/interviews/${interviewId}`);
       }
     }
@@ -455,7 +456,7 @@ function InterviewHome({ params, searchParams }: Props) {
                   filterResponses().map((response) => (
                     <div
                       className={`p-2 rounded-md hover:bg-indigo-100 border-2 my-1 text-left text-xs ${
-                        searchParams.call == response.call_id
+                        resolvedSearchParams.call == response.call_id
                           ? "bg-indigo-200"
                           : "border-indigo-100"
                       } flex flex-row justify-between cursor-pointer w-full`}
@@ -542,13 +543,13 @@ function InterviewHome({ params, searchParams }: Props) {
             </div>
             {responses && (
               <div className="w-[85%] rounded-md ">
-                {searchParams.call ? (
+                {resolvedSearchParams.call ? (
                   <CallInfo
-                    call_id={searchParams.call}
+                    call_id={resolvedSearchParams.call}
                     onDeleteResponse={handleDeleteResponse}
                     onCandidateStatusChange={handleCandidateStatusChange}
                   />
-                ) : searchParams.edit ? (
+                ) : resolvedSearchParams.edit ? (
                   <EditInterview interview={interview} />
                 ) : (
                   <SummaryInfo responses={responses} interview={interview} />

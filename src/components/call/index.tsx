@@ -1,12 +1,11 @@
 "use client";
 
 import {
-  ArrowUpRightSquareIcon,
   AlarmClockIcon,
-  XCircleIcon,
   CheckCircleIcon,
+  XCircleIcon,
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useResponses } from "@/contexts/responses.context";
@@ -37,6 +36,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { InterviewerService } from "@/services/interviewers.service";
+import { logger } from "@/lib/logger";
 
 const webClient = new RetellWebClient();
 
@@ -101,7 +101,7 @@ function Call({ interview }: InterviewProps) {
         toast.error("Failed to submit feedback. Please try again.");
       }
     } catch (error) {
-      console.error("Error submitting feedback:", error);
+      logger.error("Error submitting feedback:");
       toast.error("An error occurred. Please try again later.");
     }
   };
@@ -137,12 +137,12 @@ function Call({ interview }: InterviewProps) {
 
   useEffect(() => {
     webClient.on("call_started", () => {
-      console.log("Call started");
+      logger.info("Call started");
       setIsCalling(true);
     });
 
     webClient.on("call_ended", () => {
-      console.log("Call ended");
+      logger.info("Call ended");
       setIsCalling(false);
       setIsEnded(true);
     });
@@ -157,7 +157,8 @@ function Call({ interview }: InterviewProps) {
     });
 
     webClient.on("error", (error) => {
-      console.error("An error occurred:", error);
+      console.error("Retell WebClient error:", error);
+      toast.error("An error occurred with the call. Check the console for details.");
       webClient.stopCall();
       setIsEnded(true);
       setIsCalling(false);
@@ -196,52 +197,62 @@ function Call({ interview }: InterviewProps) {
   };
 
   const startConversation = async () => {
-    const data = {
-      mins: interview?.time_duration,
-      objective: interview?.objective,
-      questions: interview?.questions.map((q) => q.question).join(", "),
-      name: name || "not provided",
-    };
-    setLoading(true);
+    try {
+      const data = {
+        mins: interview?.time_duration,
+        objective: interview?.objective,
+        questions: interview?.questions.map((q) => q.question).join(", "),
+        name: name || "not provided",
+      };
+      setLoading(true);
 
-    const oldUserEmails: string[] = (
-      await ResponseService.getAllEmails(interview.id)
-    ).map((item) => item.email);
-    const OldUser =
-      oldUserEmails.includes(email) ||
-      (interview?.respondents && !interview?.respondents.includes(email));
+      const oldUserEmails: string[] = (
+        await ResponseService.getAllEmails(interview.id)
+      ).map((item) => item.email);
+      const OldUser =
+        oldUserEmails.includes(email) ||
+        (interview?.respondents && !interview?.respondents.includes(email));
 
-    if (OldUser) {
-      setIsOldUser(true);
-    } else {
-      const registerCallResponse: registerCallResponseType = await axios.post(
-        "/api/register-call",
-        { dynamic_data: data, interviewer_id: interview?.interviewer_id },
-      );
-      if (registerCallResponse.data.registerCallResponse.access_token) {
-        await webClient
-          .startCall({
-            accessToken:
-              registerCallResponse.data.registerCallResponse.access_token,
-          })
-          .catch(console.error);
-        setIsCalling(true);
-        setIsStarted(true);
-
-        setCallId(registerCallResponse?.data?.registerCallResponse?.call_id);
-
-        const response = await createResponse({
-          interview_id: interview.id,
-          call_id: registerCallResponse.data.registerCallResponse.call_id,
-          email: email,
-          name: name,
-        });
+      if (OldUser) {
+        setIsOldUser(true);
       } else {
-        console.log("Failed to register call");
-      }
-    }
+        const registerCallResponse: registerCallResponseType = await axios.post(
+          "/api/register-call",
+          { dynamic_data: data, interviewer_id: interview?.interviewer_id },
+        );
+        if (registerCallResponse.data.registerCallResponse.access_token) {
+          await webClient
+            .startCall({
+              accessToken:
+                registerCallResponse.data.registerCallResponse.access_token,
+            })
+            .catch((error) => {
+              logger.error("Error starting call:", error);
+              toast.error("Failed to start the call. Please try again.");
+            });
+          setIsCalling(true);
+          setIsStarted(true);
 
-    setLoading(false);
+          setCallId(registerCallResponse?.data?.registerCallResponse?.call_id);
+
+          const response = await createResponse({
+            interview_id: interview.id,
+            call_id: registerCallResponse.data.registerCallResponse.call_id,
+            email: email,
+            name: name,
+          });
+        } else {
+          logger.error("Failed to register call");
+          toast.error("Failed to register the call. Please try again.");
+        }
+      }
+
+      setLoading(false);
+    } catch (error) {
+      logger.error("An error occurred in startConversation:");
+      setLoading(false);
+      toast.error("An unexpected error occurred. Please try again later.");
+    }
   };
 
   useEffect(() => {
@@ -382,7 +393,7 @@ function Call({ interview }: InterviewProps) {
                     {!Loading ? "Start Interview" : <MiniLoader />}
                   </Button>
                   <AlertDialog>
-                    <AlertDialogTrigger>
+                    <AlertDialogTrigger asChild>
                       <Button
                         className="bg-white border ml-2 text-black min-w-15 h-10 rounded-lg flex flex-row justify-center mb-8"
                         style={{ borderColor: interview.theme_color }}
@@ -394,6 +405,9 @@ function Call({ interview }: InterviewProps) {
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           This action cannot be undone. This action will end the interview.
+                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -464,7 +478,7 @@ function Call({ interview }: InterviewProps) {
             {isStarted && !isEnded && !isOldUser && (
               <div className="items-center p-2">
                 <AlertDialog>
-                  <AlertDialogTrigger className="w-full">
+                  <AlertDialogTrigger className="w-full" asChild>
                     <Button
                       className=" bg-white text-black border  border-indigo-600 h-10 mx-auto flex flex-row justify-center mb-8"
                       disabled={Loading}
@@ -518,7 +532,7 @@ function Call({ interview }: InterviewProps) {
                       open={isDialogOpen}
                       onOpenChange={setIsDialogOpen}
                     >
-                      <AlertDialogTrigger className="w-full flex justify-center">
+                      <AlertDialogTrigger asChild>
                         <Button
                           className="bg-indigo-600 text-white h-10 mt-4 mb-4"
                           onClick={() => setIsDialogOpen(true)}
@@ -527,6 +541,9 @@ function Call({ interview }: InterviewProps) {
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Provide Feedback</AlertDialogTitle>
+                        </AlertDialogHeader>
                         <FeedbackForm
                           email={email}
                           onSubmit={handleFeedbackSubmit}
@@ -556,19 +573,6 @@ function Call({ interview }: InterviewProps) {
             )}
           </div>
         </Card>
-        <a
-          className="flex flex-row justify-center align-middle mt-3"
-          href="https://folo-up.co/"
-          target="_blank"
-        >
-          <div className="text-center text-md font-semibold mr-2  ">
-            Powered by{" "}
-            <span className="font-bold">
-              Folo<span className="text-indigo-600">Up</span>
-            </span>
-          </div>
-          <ArrowUpRightSquareIcon className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-indigo-500 " />
-        </a>
       </div>
     </div>
   );

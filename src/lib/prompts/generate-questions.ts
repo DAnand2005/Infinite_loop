@@ -1,5 +1,5 @@
 export const SYSTEM_PROMPT =
-  "You are an expert in coming up with follow up questions to uncover deeper insights.";
+  "You are an expert interviewer who crafts insightful questions to evaluate candidates.";
 
 export const generateQuestionsPrompt = (body: {
   name: string;
@@ -27,6 +27,20 @@ Moreover generate a 50 word or less second-person description about the intervie
 Do not use the exact objective in the description. Remember that some details are not be shown to the user. It should be a small description for the
 user to understand what the content of the interview would be. Make sure it is clear to the respondent who's taking the interview.
 
-The field 'questions' should take the format of an array of objects with the following key: question. 
+The field 'questions' should take the format of an array of objects with the following key: question.
 
-Strictly output only a JSON object with the keys 'questions' and 'description'.`;
+Here is an example of the desired JSON output format:
+
+{
+  "description": "An interview to assess your skills and experience in web development, focusing on your ability to solve problems and build robust applications.",
+  "questions": [
+    {
+      "question": "Can you describe a complex web application you have worked on and your role in the project?"
+    },
+    {
+      "question": "How do you approach debugging a difficult issue in a large codebase?"
+    }
+  ]
+}
+
+Strictly output only a JSON object with the keys 'questions' and 'description'. Do not include any other text or formatting.`;

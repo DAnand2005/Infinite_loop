@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Plus } from "lucide-react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import CreateInterviewModal from "@/components/dashboard/interview/createInterviewModal";
-import Modal from "@/components/dashboard/Modal";
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import CreateInterviewModal from '@/components/dashboard/interview/createInterviewModal';
+import Modal from '@/components/dashboard/Modal';
 
 function CreateInterviewCard() {
   const [open, setOpen] = useState(false);
@@ -12,29 +12,28 @@ function CreateInterviewCard() {
   return (
     <>
       <Card
-        className=" flex items-center border-dashed border-sky-700 border-2 cursor-pointer hover:scale-105 ease-in-out duration-300 h-60 w-56 ml-1 mr-3 mt-4 rounded-xl shrink-0 overflow-hidden shadow-md"
-        onClick={() => {
-          setOpen(true);
-        }}
+        className='flex flex-col items-center justify-center border-dashed border-2 border-border bg-card hover:border-primary transition-all duration-300 h-full rounded-xl cursor-pointer'
+        onClick={() => setOpen(true)}
       >
-        <CardContent className="flex items-center flex-col mx-auto">
-          <div className="flex flex-col justify-center items-center w-full overflow-hidden">
-            <Plus size={90} strokeWidth={0.5} className="text-sky-700" />
+        <CardContent className='flex flex-col items-center justify-center text-center p-6'>
+          <div className='p-3 bg-muted rounded-full mb-4'>
+            <Plus size={32} className='text-muted-foreground' />
           </div>
-          <CardTitle className="p-0 text-md text-center">
-            Create an Interview
+          <CardTitle className='text-md font-semibold text-foreground'>
+            Create New Interview
           </CardTitle>
         </CardContent>
       </Card>
-      <Modal
-        open={open}
-        closeOnOutsideClick={false}
-        onClose={() => {
-          setOpen(false);
-        }}
-      >
-        <CreateInterviewModal open={open} setOpen={setOpen} />
-      </Modal>
+      
+      {open && (
+        <Modal
+          open={open}
+          closeOnOutsideClick={false}
+          onClose={() => setOpen(false)}
+        >
+          <CreateInterviewModal open={open} setOpen={setOpen} />
+        </Modal>
+      )}
     </>
   );
 }
