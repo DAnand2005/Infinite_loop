@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: {
+    allowedDevOrigins: [
+      "https://3000-firebase-foloup-1759652419564.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev",
+    ],
+  },
   async redirects() {
     return [
       {

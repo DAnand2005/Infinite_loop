@@ -15,7 +15,6 @@ export async function POST(req: Request, res: Response) {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     maxRetries: 5,
-    dangerouslyAllowBrowser: true,
   });
 
   try {
@@ -46,10 +45,10 @@ export async function POST(req: Request, res: Response) {
       { status: 200 },
     );
   } catch (error) {
-    logger.error("Error generating interview questions");
+    logger.error("Error generating interview questions:", error);
 
     return NextResponse.json(
-      { error: "internal server error" },
+      { error: "internal server error", message: (error as Error).message },
       { status: 500 },
     );
   }

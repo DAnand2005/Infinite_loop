@@ -50,6 +50,7 @@ interface Props {
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
 function InterviewHome({ params, searchParams }: Props) {
+  const { interviewId } = params;
   const [interview, setInterview] = useState<Interview>();
   const [responses, setResponses] = useState<Response[]>();
   const { getInterviewById } = useInterviews();
@@ -84,7 +85,7 @@ function InterviewHome({ params, searchParams }: Props) {
   useEffect(() => {
     const fetchInterview = async () => {
       try {
-        const response = await getInterviewById(params.interviewId);
+        const response = await getInterviewById(interviewId);
         setInterview(response);
         setIsActive(response.is_active);
         setIsViewed(response.is_viewed);
@@ -102,7 +103,7 @@ function InterviewHome({ params, searchParams }: Props) {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getInterviewById, params.interviewId, isGeneratingInsights]);
+  }, [getInterviewById, interviewId, isGeneratingInsights]);
 
   useEffect(() => {
     const fetchOrganizationData = async () => {
@@ -124,7 +125,7 @@ function InterviewHome({ params, searchParams }: Props) {
     const fetchResponses = async () => {
       try {
         const response = await ResponseService.getAllResponses(
-          params.interviewId,
+          interviewId,
         );
         setResponses(response);
         setLoading(true);
@@ -137,7 +138,7 @@ function InterviewHome({ params, searchParams }: Props) {
 
     fetchResponses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [interviewId]);
 
   const handleDeleteResponse = (deletedCallId: string) => {
     if (responses) {
@@ -145,7 +146,7 @@ function InterviewHome({ params, searchParams }: Props) {
         responses.filter((response) => response.call_id !== deletedCallId),
       );
       if (searchParams.call === deletedCallId) {
-        router.push(`/interviews/${params.interviewId}`);
+        router.push(`/interviews/${interviewId}`);
       }
     }
   };
@@ -172,7 +173,7 @@ function InterviewHome({ params, searchParams }: Props) {
 
       await InterviewService.updateInterview(
         { is_active: updatedIsActive },
-        params.interviewId,
+        interviewId,
       );
 
       toast.success("Interview status updated", {
@@ -195,7 +196,7 @@ function InterviewHome({ params, searchParams }: Props) {
     try {
       await InterviewService.updateInterview(
         { theme_color: newColor },
-        params.interviewId,
+        interviewId,
       );
 
       toast.success("Theme color updated", {
@@ -355,7 +356,7 @@ function InterviewHome({ params, searchParams }: Props) {
                     className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
                     onClick={(event) => {
                       router.push(
-                        `/interviews/${params.interviewId}?edit=true`,
+                        `/interviews/${interviewId}?edit=true`,
                       );
                     }}
                   >
@@ -461,7 +462,7 @@ function InterviewHome({ params, searchParams }: Props) {
                       key={response?.id}
                       onClick={() => {
                         router.push(
-                          `/interviews/${params.interviewId}?call=${response.call_id}`,
+                          `/interviews/${interviewId}?call=${response.call_id}`,
                         );
                         handleResponseClick(response);
                       }}

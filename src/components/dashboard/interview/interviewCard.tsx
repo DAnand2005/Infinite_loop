@@ -116,7 +116,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
     >
       <Card className="relative p-0 mt-4 inline-block cursor-pointer h-60 w-56 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden shadow-md">
         <CardContent className={`p-0 ${isFetching ? "opacity-60" : ""}`}>
-          <div className="w-full h-40 overflow-hidden bg-indigo-600 flex items-center text-center">
+          <div className="w-full h-40 overflow-hidden bg-gradient-to-br from-sky-500 to-sky-700 flex items-center text-center">
             <CardTitle className="w-full mt-3 mx-2 text-white text-lg">
               {name}
               {isFetching && (
@@ -128,13 +128,15 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
           </div>
           <div className="flex flex-row items-center mx-4 ">
             <div className="w-full overflow-hidden">
-              <Image
-                src={img}
-                alt="Picture of the interviewer"
-                width={70}
-                height={70}
-                className="object-cover object-center"
-              />
+              {img && (
+                <Image
+                  src={img}
+                  alt="Picture of the interviewer"
+                  width={70}
+                  height={70}
+                  className="object-cover object-center"
+                />
+              )}
             </div>
             <div className="text-black text-sm font-semibold mt-2 mr-2 whitespace-nowrap">
               Responses:{" "}
@@ -145,15 +147,15 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
           </div>
           <div className="absolute top-2 right-2 flex gap-1">
             <Button
-              className="text-xs text-indigo-600 px-1 h-6"
+              className="text-xs text-sky-600 px-1 h-6"
               variant={"secondary"}
               onClick={handleJumpToInterview}
             >
               <ArrowUpRight size={16} />
             </Button>
             <Button
-              className={`text-xs text-indigo-600 px-1 h-6  ${
-                copied ? "bg-indigo-300 text-white" : ""
+              className={`text-xs text-sky-600 px-1 h-6  ${
+                copied ? "bg-sky-300 text-white" : ""
               }`}
               variant={"secondary"}
               onClick={(event) => {

@@ -13,15 +13,15 @@ import { usePathname } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
-  title: "FoloUp",
-  description: " AI-powered Interviews",
+  title: "InterroAI",
+  description: "AI-powered Interviews",
   openGraph: {
-    title: "FoloUp",
+    title: "InterroAI",
     description: "AI-powered Interviews",
-    siteName: "FoloUp",
+    siteName: "InterroAI",
     images: [
       {
-        url: "/foloup.png",
+        url: "/interroai.png",
         width: 800,
         height: 600,
       },
@@ -39,11 +39,11 @@ export default function RootLayout({
   const pathname = usePathname();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
-        <link rel="icon" href="/browser-client-icon.ico" />
+        <link rel="icon" href="/interro-ai-favicon.ico" />
       </head>
       <body
         className={cn(
@@ -71,7 +71,7 @@ export default function RootLayout({
                   toast: "bg-white",
                   title: "text-black",
                   description: "text-red-400",
-                  actionButton: "bg-indigo-400",
+                  actionButton: "bg-sky-400",
                   cancelButton: "bg-orange-400",
                   closeButton: "bg-white-400",
                 },
