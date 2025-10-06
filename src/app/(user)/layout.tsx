@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://3000-firebase-foloup-1759652419564.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev"),
   title: "InterroAI",
   description: "AI powered Interviews",
   openGraph: {

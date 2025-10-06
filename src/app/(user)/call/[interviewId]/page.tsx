@@ -1,7 +1,7 @@
 "use client";
 
 import { useInterviews } from "@/contexts/interviews.context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import Call from "@/components/call";
 import Image from "next/image";
 import { Interview } from "@/types/interview";
@@ -52,7 +52,7 @@ function PopUpMessage({ title, description, image }: PopupProps) {
 }
 
 function InterviewInterface({ params }: Props) {
-  const { interviewId } = params;
+  const { interviewId } = use(params);
   const [interview, setInterview] = useState<Interview>();
   const [isActive, setIsActive] = useState(true);
   const { getInterviewById } = useInterviews();
@@ -90,7 +90,7 @@ function InterviewInterface({ params }: Props) {
           interviewNotFound ? (
             <PopUpMessage
               title="Invalid URL"
-              description="The interview link you\'re trying to access is invalid. Please check the URL and try again."
+              description="The interview link you're trying to access is invalid. Please check the URL and try again."
               image="/invalid-url.png"
             />
           ) : (

@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
+  metadataBase: new URL("https://3000-firebase-foloup-1759652419564.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev"),
   title: "InterroAI",
   description: "AI-powered Interviews",
   openGraph: {
