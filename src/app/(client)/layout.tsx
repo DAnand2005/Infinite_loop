@@ -9,11 +9,14 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import SideMenu from "@/components/sideMenu";
 import { usePathname } from "next/navigation";
+import React, { useState } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const metadata = {
-  metadataBase: new URL("https://3000-firebase-foloup-1759652419564.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev"),
+  metadataBase: new URL(
+    "https://3000-firebase-foloup-1759652419564.cluster-ulqnojp5endvgve6krhe7klaws.cloudworkstations.dev"
+  ),
   title: "InterroAI",
   description: "AI-powered Interviews",
   openGraph: {
@@ -38,6 +41,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  const shouldShowSidebar = !["/sign-in", "/sign-up"].some((path) =>
+    pathname.includes(path)
+  );
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -46,38 +58,47 @@ export default function RootLayout({
         <meta name="description" content={metadata.description} />
         <link rel="icon" href="/interro-ai-favicon.ico" />
       </head>
-      <body
-        className={cn(
-          inter.className,
-          "antialiased overflow-hidden min-h-screen",
-        )}
-      >
+      <body className={cn(inter.className, "antialiased bg-background")}>
         <ClerkProvider
           signInFallbackRedirectUrl={"/dashboard"}
           afterSignOutUrl={"/sign-in"}
         >
           <Providers>
-            {!pathname.includes("/sign-in") &&
-              !pathname.includes("/sign-up") && <Navbar />}
-            <div className="flex flex-row h-screen">
-              {!pathname.includes("/sign-in") &&
-                !pathname.includes("/sign-up") && <SideMenu />}
-              <div className="ml-[200px] pt-[64px] h-full overflow-y-auto flex-grow">
-                {children}
+            <div className="relative min-h-screen flex flex-col">
+              {shouldShowSidebar && <Navbar />}
+              <div className="flex flex-grow">
+                {shouldShowSidebar && (
+                  <SideMenu
+                    isCollapsed={isSidebarCollapsed}
+                    toggleSidebar={toggleSidebar}
+                  />
+                )}
+                <main
+                  className={cn(
+                    "flex-grow transition-all duration-300",
+                    shouldShowSidebar && (isSidebarCollapsed ? "ml-20" : "ml-64")
+                  )}
+                >
+                  <div className="pt-16 h-full">
+                    <div className="h-[calc(100vh-4rem)] overflow-auto">
+                      {children}
+                    </div>
+                  </div>
+                </main>
               </div>
+              <Toaster
+                toastOptions={{
+                  classNames: {
+                    toast: "bg-card",
+                    title: "text-foreground",
+                    description: "text-muted-foreground",
+                    actionButton: "bg-primary text-primary-foreground",
+                    cancelButton: "bg-secondary text-secondary-foreground",
+                    closeButton: "text-muted-foreground",
+                  },
+                }}
+              />
             </div>
-            <Toaster
-              toastOptions={{
-                classNames: {
-                  toast: "bg-white",
-                  title: "text-black",
-                  description: "text-red-400",
-                  actionButton: "bg-sky-400",
-                  cancelButton: "bg-orange-400",
-                  closeButton: "bg-white-400",
-                },
-              }}
-            />
           </Providers>
         </ClerkProvider>
       </body>

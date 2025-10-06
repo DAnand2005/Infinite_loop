@@ -83,10 +83,9 @@ function Interviews() {
   }, [organization, currentPlan, allowedResponsesCount]);
 
   return (
-    <main className='p-4 sm:p-6 lg:p-8 lg:ml-64'>
-      {/* This pt-16 is to offset the fixed navbar height (h-16) */}
-      <div className='pt-16 max-w-7xl mx-auto'> 
-        <div className='mb-8'>
+    <main className='p-4 sm:p-6 lg:p-6 lg:ml-60'>
+      <div className='pt-10 max-w-7xl mx-auto'> 
+        <div className='mb-6'>
           <h1 className='text-3xl font-bold tracking-tight text-foreground'>
             Dashboard
           </h1>

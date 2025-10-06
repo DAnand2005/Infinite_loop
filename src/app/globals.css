@@ -16,32 +16,42 @@
 @layer base {
   :root {
     /* New color palette */
-    --background: 210 20% 98%; /* Light gray */
-    --foreground: 215 28% 17%; /* Dark blue-gray */
-    --card: 210 20% 100%; /* White */
+    --background: 210 20% 98%;
+    /* Light gray */
+    --foreground: 215 28% 17%;
+    /* Dark blue-gray */
+    --card: 210 20% 100%;
+    /* White */
     --card-foreground: 215 28% 17%;
     --popover: 210 20% 100%;
     --popover-foreground: 215 28% 17%;
-    --primary: 217 91% 60%; /* Vibrant blue */
+    --primary: 217 91% 60%;
+    /* Vibrant blue */
     --primary-foreground: 210 20% 98%;
-    --secondary: 215 20% 65%; /* Muted blue-gray */
+    --secondary: 215 20% 65%;
+    /* Muted blue-gray */
     --secondary-foreground: 210 20% 98%;
-    --muted: 215 20% 90%; /* Light blue-gray */
+    --muted: 215 20% 90%;
+    /* Light blue-gray */
     --muted-foreground: 215 25% 27%;
     --accent: 217 91% 60%;
     --accent-foreground: 210 20% 98%;
-    --destructive: 0 84% 60%; /* Red */
+    --destructive: 0 84% 60%;
+    /* Red */
     --destructive-foreground: 210 20% 98%;
     --border: 215 20% 90%;
     --input: 215 20% 90%;
     --ring: 217 91% 60%;
-    --radius: 0.75rem; /* Slightly larger radius */
+    --radius: 0.75rem;
+    /* Slightly larger radius */
   }
 
   .dark {
-    --background: 215 28% 17%; /* Dark blue-gray */
+    --background: 215 28% 17%;
+    /* Dark blue-gray */
     --foreground: 210 20% 98%;
-    --card: 215 28% 12%; /* Darker blue-gray */
+    --card: 215 28% 12%;
+    /* Darker blue-gray */
     --card-foreground: 210 20% 98%;
     --popover: 215 28% 12%;
     --popover-foreground: 210 20% 98%;
@@ -49,11 +59,13 @@
     --primary-foreground: 210 20% 98%;
     --secondary: 215 20% 65%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 215 28% 22%; /* Dark muted blue-gray */
+    --muted: 215 28% 22%;
+    /* Dark muted blue-gray */
     --muted-foreground: 215 20% 75%;
     --accent: 217 91% 60%;
     --accent-foreground: 210 20% 98%;
-    --destructive: 0 72% 51%; /* Darker red */
+    --destructive: 0 72% 51%;
+    /* Darker red */
     --destructive-foreground: 210 20% 98%;
     --border: 215 28% 22%;
     --input: 215 28% 22%;
@@ -65,20 +77,82 @@
   * {
     @apply border-border transition-colors duration-300;
   }
+
   body {
-    @apply bg-background text-foreground font-sans; /* Professional sans-serif font */
+    @apply bg-background text-foreground font-sans;
+    /* Professional sans-serif font */
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold text-foreground;
   }
 }
 
 .cl-logoImage {
-  width: 120px !important; /* Larger logo */
+  width: 120px !important;
+  /* Larger logo */
   height: 120px !important;
 }
 
 /* Add the elegant background to the body */
 body {
   @apply elegant-background;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus styles */
+*:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent layout shift */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

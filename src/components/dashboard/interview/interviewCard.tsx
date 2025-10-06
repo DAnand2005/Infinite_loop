@@ -90,7 +90,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   const cardContent = (
     <Card className={`relative flex flex-col h-full bg-card rounded-xl shadow-md transition-all duration-300 hover:border-primary ${isFetching ? 'opacity-70' : ''}`}>
       <CardHeader className='flex-row items-start justify-between'>
-        <div>
+        <div className="min-w-0">
           <CardTitle className='text-lg font-semibold text-foreground truncate'>
             {name}
           </CardTitle>

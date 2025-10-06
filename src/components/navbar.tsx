@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
@@ -5,8 +7,8 @@ import { dark } from "@clerk/themes";
 
 function Navbar() {
   return (
-    <header className="fixed inset-x-0 top-0 z-20 bg-card border-b border-border">
-      <div className="flex items-center justify-between h-16 px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <div className="fixed inset-x-0 top-0 bg-card z-40 h-16 py-4 border-b border-border shadow-sm">
+      <div className="flex items-center justify-between h-full gap-2 px-4 sm:px-8 mx-auto max-w-screen-2xl">
         <div className="flex items-center gap-4">
           <Link href={"/dashboard"} className="flex items-center gap-2">
             <p className="text-xl font-bold text-foreground">
@@ -37,7 +39,7 @@ function Navbar() {
           <UserButton afterSignOutUrl="/sign-in" appearance={{ baseTheme: dark }} />
         </div>
       </div>
-    </header>
+    </div>
   );
 }
 
